@@ -1,42 +1,29 @@
-import {
-  BatteryFull,
-  BatteryMedium,
-  BatteryLow,
-} from "lucide-react";
+import { BatteryFull, BatteryMedium, BatteryLow } from "lucide-react";
 
 import Card from "../../components/common/Card";
 import CardHeader from "../../components/common/CardHeader";
 import CardBody from "../../components/common/CardBody";
 
-import { useDrone } from "../../context/DroneContext";
+import { useDrone } from "../../context/useDrone";
 
 export default function BatteryCard() {
-
-  const { battery } = useDrone();
+  const { battery, simulated, lastTelemetryAt } = useDrone();
 
   const Icon =
-    battery > 60
-      ? BatteryFull
-      : battery > 20
-      ? BatteryMedium
-      : BatteryLow;
+    battery > 60 ? BatteryFull : battery > 20 ? BatteryMedium : BatteryLow;
 
   return (
-    <Card>
-
-      <CardHeader
-        title="Batterie"
-        icon={Icon}
-      />
+    <Card className="telemetry-value">
+      <CardHeader title="Batterie" icon={Icon} />
 
       <CardBody>
-
-        <h1 className="text-xl font-bold">
-
-          {battery.toFixed(0)}%
-
+        <h1 className="text-2xl font-bold">
+          {simulated && lastTelemetryAt ? `${battery.toFixed(0)} %` : "—"}
         </h1>
 
+        <p className="mt-2 text-xs text-slate-400">
+          {simulated ? "Valeur simulée" : "Mesure matérielle indisponible"}
+        </p>
         <div
           className="
             mt-2
@@ -55,18 +42,16 @@ export default function BatteryCard() {
                 battery > 60
                   ? "bg-green-500"
                   : battery > 20
-                  ? "bg-yellow-500"
-                  : "bg-red-500"
+                    ? "bg-yellow-500"
+                    : "bg-red-500"
               }
             `}
             style={{
-              width: `${battery}%`,
+              width: `${simulated && lastTelemetryAt ? battery : 0}%`,
             }}
           />
         </div>
-
       </CardBody>
-
     </Card>
   );
 }

@@ -1,312 +1,386 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as api from "../services/api";
 import { createDroneSocket } from "../services/socket";
-import { useAuth } from "./AuthContext";
-
-const DroneContext = createContext(null);
-
-// Bujumbura, Burundi -- same default the original client-only simulation
-// used, kept here as the "last known position" before any real fix ever
-// arrives.
-const HOME = { latitude: -3.3822, longitude: 29.3644 };
-
-// GPS noise is typically a few meters (~0.00002-0.00005 deg); only
-// recompute heading when the rover has moved further than that, so a
-// stationary drone doesn't get a jittery/spinning compass.
-const MIN_MOVEMENT_DEG = 0.00003;
-
-function bearingDegrees(lat1, lon1, lat2, lon2) {
-  const toRad = (d) => (d * Math.PI) / 180;
-  const toDeg = (r) => (r * 180) / Math.PI;
-  const dLon = toRad(lon2 - lon1);
-  const y = Math.sin(dLon) * Math.cos(toRad(lat2));
-  const x =
-    Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
-    Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
-  return (toDeg(Math.atan2(y, x)) + 360) % 360;
-}
-
+import { useAuth } from "./useAuth";
+import { DroneContext } from "./contexts";
+const initial = {
+  droneId: null,
+  droneName: "",
+  flightMode: "TERRESTRE",
+  etat: "ARRETE",
+  connected: false,
+  simulated: false,
+  battery: 0,
+  signal: 0,
+  speed: 0,
+  altitude: 0,
+  latitude: -3.3822,
+  longitude: 29.3644,
+  gpsFix: false,
+  heading: 0,
+  distanceObstacle: null,
+  obstacleDetected: false,
+  videoFrame: null,
+  detections: [],
+  detectorAvailable: null,
+  videoSimulated: false,
+  lastTelemetryAt: null,
+  lastFrameAt: null,
+};
 export function DroneProvider({ children }) {
   const { token } = useAuth();
-
-  const [droneId, setDroneId] = useState(null);
-  const [connected, setConnected] = useState(false);
-  const [simulated, setSimulated] = useState(false);
-
-  const [battery, setBattery] = useState(100);
-  const [signal, setSignal] = useState(97);
-  const [speed, setSpeed] = useState(0);
-  const [altitude, setAltitude] = useState(0);
-  const [latitude, setLatitude] = useState(HOME.latitude);
-  const [longitude, setLongitude] = useState(HOME.longitude);
-  const [gpsFix, setGpsFix] = useState(false);
-  const [heading, setHeading] = useState(0);
-  const [distanceObstacle, setDistanceObstacle] = useState(null);
-  const [obstacleDetected, setObstacleDetected] = useState(false);
-
-  const [flightMode, setFlightModeState] = useState("TERRESTRE");
-  const [etat, setEtat] = useState("ARRETE");
-
-  const [videoFrame, setVideoFrame] = useState(null);
-  const [detections, setDetections] = useState([]);
-  const [detectorAvailable, setDetectorAvailable] = useState(null);
-
+  const [state, setState] = useState(initial);
+  const [droneLoading, setDroneLoading] = useState(true);
+  const [droneError, setDroneError] = useState(null);
+  const [reload, setReload] = useState(0);
   const [alerts, setAlerts] = useState([]);
-
-  // Unused by any component today, kept only because it existed in the
-  // original mocked context -- harmless local-only UI state.
+  const [commandFeedback, setCommandFeedback] = useState(null);
+  const [now, setNow] = useState(() => Date.now());
   const [controlMode, setControlMode] = useState("MANUAL");
-
   const socketRef = useRef(null);
-  const lastFixRef = useRef(null);
-
-  // ------------------------------------------------------------------
-  // Load the drone list once authenticated, and pick the one drone this
-  // project seeds ("Drone Hybride 01"). If several existed, this would
-  // need a picker -- out of scope for a single-rover project.
-  // ------------------------------------------------------------------
+  const feedbackTimer = useRef(null);
+  const lastFix = useRef(null);
+  const stopPending = useRef(false);
+  const reloadDrones = useCallback(() => setReload((n) => n + 1), []);
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => {
+      clearInterval(timer);
+      clearTimeout(feedbackTimer.current);
+    };
+  }, []);
   useEffect(() => {
     let cancelled = false;
-
-    async function loadDrone() {
+    async function load() {
+      setState(initial);
+      setAlerts([]);
+      setCommandFeedback(null);
+      lastFix.current = null;
+      clearTimeout(feedbackTimer.current);
+      stopPending.current = false;
+      setDroneLoading(true);
+      setDroneError(null);
       if (!token) {
-        setDroneId(null);
+        setDroneLoading(false);
         return;
       }
       try {
         const drones = await api.fetchDrones();
-        if (cancelled || drones.length === 0) return;
-        const drone = drones[0];
-        setDroneId(drone.id_drone);
-        setFlightModeState(drone.mode);
-        setEtat(drone.etat);
+        if (cancelled) return;
+        if (drones.length) {
+          const drone = drones[0];
+          setState({
+            ...initial,
+            droneId: drone.id_drone,
+            droneName: drone.nom,
+            flightMode: drone.mode,
+            etat: drone.etat,
+          });
+          try {
+            const items = await api.fetchAlerts(drone.id_drone);
+            if (!cancelled)
+              setAlerts((prev) => {
+                const persisted = new Set(
+                  prev.map((a) => a.id_alerte).filter(Boolean),
+                );
+                return [
+                  ...prev,
+                  ...items
+                    .filter((a) => !persisted.has(a.id_alerte))
+                    .map((a) => ({
+                      ...a,
+                      id: `db-${a.id_alerte}`,
+                      receivedAt: a.date_alerte,
+                    })),
+                ].slice(0, 100);
+              });
+          } catch {
+            /* Live alerts still remain available. */
+          }
+        }
       } catch {
-        /* surfaced as "connected: false" once the socket also fails to open */
+        if (!cancelled)
+          setDroneError(
+            "Impossible de charger les drones. Vérifiez la connexion au serveur.",
+          );
+      } finally {
+        if (!cancelled) setDroneLoading(false);
       }
     }
-
-    loadDrone();
+    load();
     return () => {
       cancelled = true;
     };
-  }, [token]);
-
-  const handleMessage = useCallback((message) => {
-    const { type, data } = message;
-
-    if (type === "connection") {
-      setConnected(Boolean(data.connected));
-      setSimulated(Boolean(data.simulated));
-      return;
-    }
-
-    if (type === "telemetry") {
-      setBattery(data.batterie ?? 0);
-      setAltitude(data.altitude ?? 0);
-      setSpeed(data.vitesse ?? 0);
-      if (typeof data.signal === "number") setSignal(data.signal);
-      setDistanceObstacle(data.distance_obstacle);
-      setObstacleDetected(Boolean(data.obstacle_detecte));
-
-      const hasFix = data.latitude != null && data.longitude != null;
-      setGpsFix(hasFix);
-      if (hasFix) {
-        const prev = lastFixRef.current;
-        if (prev) {
-          const moved =
-            Math.abs(data.latitude - prev.lat) > MIN_MOVEMENT_DEG ||
-            Math.abs(data.longitude - prev.lon) > MIN_MOVEMENT_DEG;
-          if (moved) {
-            setHeading(bearingDegrees(prev.lat, prev.lon, data.latitude, data.longitude));
+  }, [token, reload]);
+  const handleResult = useCallback((data) => {
+    // The current protocol identifies an action, but has no command ID.
+    // Keep stop feedback visible while queued movement replies drain.
+    if (stopPending.current && data.action !== "stop") return;
+    clearTimeout(feedbackTimer.current);
+    feedbackTimer.current = null;
+    if (data.action === "stop" && data.executed) stopPending.current = false;
+    setCommandFeedback({
+      error: !data.executed,
+      message: data.executed
+        ? data.action === "stop"
+          ? "Arrêt confirmé par le serveur."
+          : "Commande acceptée par le serveur."
+        : `${data.action === "stop" ? "Arrêt non confirmé" : "Commande refusée"} : ${data.blocked_reason || "raison inconnue"}`,
+    });
+  }, []);
+  const handleMessage = useCallback(
+    ({ type, data }) => {
+      if (type === "connection")
+        setState((s) => ({
+          ...s,
+          connected: Boolean(data.connected),
+          simulated: Boolean(data.simulated),
+        }));
+      if (type === "camera_connection" && !data.connected)
+        setState((s) => ({ ...s, lastFrameAt: null }));
+      if (type === "telemetry") {
+        const fix = data.latitude != null && data.longitude != null;
+        let heading;
+        if (fix && lastFix.current) {
+          const [lat, lon] = lastFix.current;
+          if (
+            Math.abs(data.latitude - lat) + Math.abs(data.longitude - lon) >
+            0.00003
+          ) {
+            const r = Math.PI / 180,
+              d = (data.longitude - lon) * r;
+            heading =
+              (Math.atan2(
+                Math.sin(d) * Math.cos(data.latitude * r),
+                Math.cos(lat * r) * Math.sin(data.latitude * r) -
+                  Math.sin(lat * r) * Math.cos(data.latitude * r) * Math.cos(d),
+              ) /
+                r +
+                360) %
+              360;
           }
         }
-        lastFixRef.current = { lat: data.latitude, lon: data.longitude };
-        setLatitude(data.latitude);
-        setLongitude(data.longitude);
+        if (fix) lastFix.current = [data.latitude, data.longitude];
+        setState((s) => ({
+          ...s,
+          battery: data.batterie ?? 0,
+          signal: data.signal ?? 0,
+          speed: data.vitesse ?? 0,
+          altitude: data.altitude ?? 0,
+          latitude: fix ? data.latitude : s.latitude,
+          longitude: fix ? data.longitude : s.longitude,
+          gpsFix: fix,
+          heading: heading ?? s.heading,
+          distanceObstacle:
+            data.distance_obstacle >= 0 ? data.distance_obstacle : null,
+          obstacleDetected: Boolean(data.obstacle_detecte),
+          lastTelemetryAt: Date.now(),
+        }));
       }
-      return;
-    }
-
-    if (type === "frame") {
-      setVideoFrame(`data:image/jpeg;base64,${data.image_base64}`);
-      setDetections(data.detections || []);
-      setDetectorAvailable(Boolean(data.detector_available));
-      return;
-    }
-
-    if (type === "alerte") {
-      setAlerts((prev) => [{ ...data, id: `srv-${Date.now()}` }, ...prev].slice(0, 30));
-      return;
-    }
-
-    if (type === "command_result") {
-      if (!data.executed && data.blocked_reason) {
+      if (type === "frame")
+        setState((s) => ({
+          ...s,
+          videoFrame: `data:image/jpeg;base64,${data.image_base64}`,
+          detections: data.detections || [],
+          detectorAvailable: Boolean(data.detector_available),
+          videoSimulated: Boolean(data.simulated),
+          lastFrameAt: Date.now(),
+        }));
+      if (type === "alerte")
         setAlerts((prev) =>
           [
             {
-              id: `cmd-${Date.now()}`,
-              type: "COMMANDE",
-              message: data.blocked_reason,
-              statut: "NOUVELLE",
+              ...data,
+              id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+              receivedAt: new Date().toISOString(),
             },
             ...prev,
-          ].slice(0, 30)
+          ].slice(0, 100),
         );
-      }
-    }
-  }, []);
-
-  // ------------------------------------------------------------------
-  // Open the realtime socket once we know which drone to watch.
-  // ------------------------------------------------------------------
+      if (type === "command_result") handleResult(data);
+    },
+    [handleResult],
+  );
   useEffect(() => {
-    if (!droneId || !token) return undefined;
-
-    const socket = createDroneSocket(droneId, token, {
-      onOpen: () => setConnected(true),
-      onClose: () => setConnected(false),
+    if (!state.droneId || !token) return;
+    const socket = createDroneSocket(state.droneId, token, {
+      onClose: () => setState((s) => ({ ...s, connected: false })),
       onMessage: handleMessage,
     });
     socketRef.current = socket;
-
     return () => {
       socket.close();
       socketRef.current = null;
     };
-  }, [droneId, token, handleMessage]);
-
-  // ------------------------------------------------------------------
-  // Commands
-  // ------------------------------------------------------------------
+  }, [state.droneId, token, handleMessage]);
+  const telemetryAge =
+    state.lastTelemetryAt == null
+      ? null
+      : Math.max(0, Math.floor((now - state.lastTelemetryAt) / 1000));
+  const frameAge =
+    state.lastFrameAt == null
+      ? null
+      : Math.max(0, Math.floor((now - state.lastFrameAt) / 1000));
+  const telemetryStale =
+    !state.connected || telemetryAge == null || telemetryAge > 5;
+  const frameStale = !state.connected || frameAge == null || frameAge > 5;
   const sendCommand = useCallback(
     (action, speedPercent) => {
-      const payload = { type: "command", action };
-      if (speedPercent !== undefined) payload.speed = Math.round(speedPercent);
-
-      const sentOverSocket = socketRef.current?.send(payload);
-      if (!sentOverSocket && droneId) {
-        // Socket not open (e.g. still reconnecting) -- REST still gets
-        // the command through, just without the low-latency path.
-        api.sendCommandRest(droneId, action).catch(() => {});
+      if (!state.droneId) {
+        setCommandFeedback({
+          error: true,
+          message: "Aucun drone sélectionné.",
+        });
+        return false;
       }
+      if (
+        action !== "stop" &&
+        (telemetryStale ||
+          state.flightMode !== "TERRESTRE" ||
+          stopPending.current)
+      ) {
+        setCommandFeedback({
+          error: true,
+          message:
+            "Déplacement indisponible : vérifiez la liaison, le mode terrestre et la confirmation d’arrêt.",
+        });
+        return false;
+      }
+      if (action === "stop") stopPending.current = true;
+      setCommandFeedback((previous) =>
+        previous?.message ===
+        (action === "stop"
+          ? "Arrêt envoyé — en attente de confirmation."
+          : "Commande envoyée — en attente de confirmation.")
+          ? previous
+          : {
+              error: false,
+              message:
+                action === "stop"
+                  ? "Arrêt envoyé — en attente de confirmation."
+                  : "Commande envoyée — en attente de confirmation.",
+            },
+      );
+      if (!feedbackTimer.current || action === "stop") {
+        clearTimeout(feedbackTimer.current);
+        feedbackTimer.current = setTimeout(() => {
+          feedbackTimer.current = null;
+          setCommandFeedback({
+            error: true,
+            message: stopPending.current
+              ? "Arrêt non confirmé. Vérifiez le drone et réessayez."
+              : "Commande sans confirmation du serveur.",
+          });
+        }, 4000);
+      }
+      const payload = {
+        type: "command",
+        action,
+        ...(speedPercent === undefined
+          ? {}
+          : { speed: Math.round(speedPercent) }),
+      };
+      if (!socketRef.current?.send(payload))
+        api
+          .sendCommandRest(state.droneId, action, payload.speed)
+          .then(handleResult)
+          .catch(() => {
+            clearTimeout(feedbackTimer.current);
+            feedbackTimer.current = null;
+            setCommandFeedback({
+              error: true,
+              message:
+                action === "stop"
+                  ? "Arrêt non confirmé : serveur inaccessible."
+                  : "Échec de la commande : serveur inaccessible.",
+            });
+          });
+      return true;
     },
-    [droneId]
+    [state.droneId, state.flightMode, telemetryStale, handleResult],
   );
-
-  const stop = useCallback(() => sendCommand("stop"), [sendCommand]);
-
+  const stop = useCallback(() => {
+    window.dispatchEvent(new Event("drone-stop"));
+    sendCommand("stop");
+  }, [sendCommand]);
   const setFlightMode = useCallback(
     async (mode) => {
-      if (!droneId) return;
+      if (!state.droneId || mode !== "TERRESTRE") return;
       try {
-        const updated = await api.setDroneMode(droneId, mode);
-        setFlightModeState(updated.mode);
+        const drone = await api.setDroneMode(state.droneId, mode);
+        setState((s) => ({ ...s, flightMode: drone.mode }));
       } catch {
-        /* the button simply won't visually switch; no hardware side-effect to undo */
+        setCommandFeedback({
+          error: true,
+          message: "Changement de mode non confirmé. Réessayez.",
+        });
       }
     },
-    [droneId]
+    [state.droneId],
   );
-
-  const takeOff = useCallback(() => setFlightMode("AERIEN"), [setFlightMode]);
-
-  const land = useCallback(() => {
-    sendCommand("stop");
-    setFlightMode("TERRESTRE");
-  }, [sendCommand, setFlightMode]);
-
-  const emergencyStop = useCallback(() => sendCommand("stop"), [sendCommand]);
-
-  const returnHome = useCallback(() => {
-    sendCommand("stop");
-    setAlerts((prev) =>
-      [
-        {
-          id: `home-${Date.now()}`,
-          type: "INFO",
-          message:
-            "Retour au point de départ non disponible sur ce matériel (pas de navigation par waypoints) -- drone arrêté à la place.",
-          statut: "NOUVELLE",
-        },
-        ...prev,
-      ].slice(0, 30)
+  const markAlertsRead = useCallback(async () => {
+    const unread = alerts.filter((a) => a.statut === "NOUVELLE");
+    const results = await Promise.allSettled(
+      unread.map((a) =>
+        a.id_alerte
+          ? api.markAlertStatus(a.id_alerte, "LUE")
+          : Promise.resolve(),
+      ),
     );
-  }, [sendCommand]);
-
-  const markAlertsRead = useCallback(() => {
-    setAlerts((prev) => prev.map((a) => ({ ...a, statut: "LUE" })));
-  }, []);
-
+    const ids = new Set(
+      unread
+        .filter((_, i) => results[i].status === "fulfilled")
+        .map((a) => a.id),
+    );
+    setAlerts((prev) =>
+      prev.map((a) => (ids.has(a.id) ? { ...a, statut: "LUE" } : a)),
+    );
+    if (results.some((r) => r.status === "rejected"))
+      setCommandFeedback({
+        error: true,
+        message:
+          "Certaines alertes n’ont pas pu être marquées comme lues. Réessayez.",
+      });
+  }, [alerts]);
   const value = useMemo(
     () => ({
-      droneId,
-      connected,
-      simulated,
-      battery,
-      signal,
-      speed,
-      altitude,
-      latitude,
-      longitude,
-      gpsFix,
-      heading,
-      distanceObstacle,
-      obstacleDetected,
-      flightMode,
-      etat,
-      videoFrame,
-      detections,
-      detectorAvailable,
+      ...state,
       alerts,
       markAlertsRead,
+      droneLoading,
+      droneError,
+      reloadDrones,
+      telemetryAge,
+      telemetryStale,
+      frameAge,
+      frameStale,
+      commandFeedback,
+      sendCommand,
+      stop,
+      emergencyStop: stop,
+      setFlightMode,
       controlMode,
       setControlMode,
-      setFlightMode,
-      sendCommand,
-      stop,
-      takeOff,
-      land,
-      returnHome,
-      emergencyStop,
     }),
     [
-      droneId,
-      connected,
-      simulated,
-      battery,
-      signal,
-      speed,
-      altitude,
-      latitude,
-      longitude,
-      gpsFix,
-      heading,
-      distanceObstacle,
-      obstacleDetected,
-      flightMode,
-      etat,
-      videoFrame,
-      detections,
-      detectorAvailable,
+      state,
       alerts,
       markAlertsRead,
-      controlMode,
-      setFlightMode,
+      droneLoading,
+      droneError,
+      reloadDrones,
+      telemetryAge,
+      telemetryStale,
+      frameAge,
+      frameStale,
+      commandFeedback,
       sendCommand,
       stop,
-      takeOff,
-      land,
-      returnHome,
-      emergencyStop,
-    ]
+      setFlightMode,
+      controlMode,
+    ],
   );
-
-  return <DroneContext.Provider value={value}>{children}</DroneContext.Provider>;
-}
-
-export function useDrone() {
-  const ctx = useContext(DroneContext);
-  if (!ctx) throw new Error("useDrone must be used within a DroneProvider");
-  return ctx;
+  return (
+    <DroneContext.Provider value={value}>{children}</DroneContext.Provider>
+  );
 }

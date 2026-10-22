@@ -4,11 +4,10 @@ import Card from "../../components/common/Card";
 import CardHeader from "../../components/common/CardHeader";
 import CardBody from "../../components/common/CardBody";
 
-import { useDrone } from "../../context/DroneContext";
+import { useDrone } from "../../context/useDrone";
 
 export default function SpeedCard() {
-
-  const { speed } = useDrone();
+  const { speed, lastTelemetryAt } = useDrone();
 
   const currentSpeed = Math.abs(speed);
 
@@ -30,53 +29,31 @@ export default function SpeedCard() {
   }
 
   return (
-
-    <Card>
-
-      <CardHeader
-        title="Vitesse"
-        icon={Gauge}
-      />
+    <Card className="telemetry-value">
+      <CardHeader title="Vitesse" icon={Gauge} />
 
       <CardBody>
-
         <div className="flex items-end justify-between">
+          <h1 className="text-2xl font-bold">
+            {lastTelemetryAt ? currentSpeed.toFixed(1) : "—"}
 
-          <h1 className="text-xl font-bold">
-
-            {currentSpeed.toFixed(1)}
-
-            <span className="ml-2 text-sm text-slate-400">
-
-              km/h
-
-            </span>
-
+            <span className="ml-2 text-sm text-slate-400">km/h</span>
           </h1>
 
           <span className="text-xs text-cyan-400 font-medium">
-
-            {status}
-
+            {lastTelemetryAt ? status : "En attente"}
           </span>
-
         </div>
 
         <div className="mt-2 h-1 rounded-full bg-slate-800">
-
           <div
             className={`${color} h-1 rounded-full transition-all duration-300`}
             style={{
               width: `${Math.min(currentSpeed * 5, 100)}%`,
             }}
           />
-
         </div>
-
       </CardBody>
-
     </Card>
-
   );
-
 }

@@ -5,13 +5,13 @@ import MainLayout from "../components/layout/MainLayout";
 import Card from "../components/common/Card";
 import CardHeader from "../components/common/CardHeader";
 import CardBody from "../components/common/CardBody";
-import { useDrone } from "../context/DroneContext";
+import { useDrone } from "../context/useDrone";
 import * as api from "../services/api";
 
 const STATUT_STYLES = {
   PLANIFIEE: "bg-slate-700 text-slate-200",
   EN_COURS: "bg-cyan-600 text-white",
-  TERMINEE: "bg-green-700 text-green-100",
+  TERMINEE: "bg-cyan-700 text-green-100",
   ANNULEE: "bg-red-900 text-red-200",
 };
 
@@ -34,14 +34,19 @@ export default function MissionPage() {
   const [actingOn, setActingOn] = useState(null); // id_mission en cours d'action
 
   const load = useCallback(async () => {
-    if (!droneId) return;
+    if (!droneId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
       const data = await api.fetchMissions(droneId);
       setMissions(data);
     } catch {
-      setError("Impossible de charger les missions -- le backend est-il bien lancé ?");
+      setError(
+        "Impossible de charger les missions -- le backend est-il bien lancé ?",
+      );
     } finally {
       setLoading(false);
     }
@@ -95,12 +100,18 @@ export default function MissionPage() {
 
   return (
     <MainLayout>
-      <div className="flex flex-col gap-3 xl:h-full xl:min-h-0">
+      <div className="flex flex-col gap-3 ">
         <section className="shrink-0">
           <h2 className="mb-3 text-lg font-semibold">Missions</h2>
 
-          <form onSubmit={handleCreate} className="flex gap-2">
+          <form onSubmit={handleCreate} className="flex flex-wrap gap-2">
+            <label htmlFor="mission-title" className="sr-only">
+              Titre de la mission
+            </label>
             <input
+              id="mission-title"
+              maxLength={200}
+              required
               value={titre}
               onChange={(e) => setTitre(e.target.value)}
               placeholder="Titre de la nouvelle mission..."
@@ -108,10 +119,14 @@ export default function MissionPage() {
             />
             <button
               type="submit"
-              disabled={creating || !titre.trim()}
+              disabled={creating || !titre.trim() || !droneId}
               className="flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold transition hover:bg-cyan-500 disabled:opacity-60"
             >
-              {creating ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+              {creating ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Plus size={16} />
+              )}
               Créer
             </button>
           </form>
@@ -119,7 +134,7 @@ export default function MissionPage() {
           {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
         </section>
 
-        <section className="xl:min-h-0 xl:flex-1">
+        <section className=" ">
           <Card className="h-full min-h-0 flex flex-col">
             <CardHeader title={`Liste des missions (${missions.length})`} />
             <CardBody className="flex-1 min-h-0 overflow-y-auto">
@@ -127,7 +142,9 @@ export default function MissionPage() {
                 <p className="text-sm text-slate-500">Chargement...</p>
               )}
               {!loading && missions.length === 0 && (
-                <p className="text-sm text-slate-500">Aucune mission pour l'instant -- crée la première ci-dessus.</p>
+                <p className="text-sm text-slate-500">
+                  Aucune mission pour l'instant -- crée la première ci-dessus.
+                </p>
               )}
 
               <ul className="space-y-2">
@@ -139,7 +156,8 @@ export default function MissionPage() {
                     <div>
                       <p className="font-medium">{mission.titre}</p>
                       <p className="text-xs text-slate-500">
-                        Début : {formatDate(mission.date_debut)} · Fin : {formatDate(mission.date_fin)}
+                        Début : {formatDate(mission.date_debut)} · Fin :{" "}
+                        {formatDate(mission.date_fin)}
                       </p>
                     </div>
 
@@ -149,14 +167,19 @@ export default function MissionPage() {
                           STATUT_STYLES[mission.statut] || "bg-slate-700"
                         }`}
                       >
-                        {mission.statut}
+                        {{
+                          PLANIFIEE: "Planifiée",
+                          EN_COURS: "En cours",
+                          TERMINEE: "Terminée",
+                          ANNULEE: "Annulée",
+                        }[mission.statut] || mission.statut}
                       </span>
 
                       {mission.statut === "PLANIFIEE" && (
                         <button
                           onClick={() => handleDemarrer(mission.id_mission)}
                           disabled={actingOn === mission.id_mission}
-                          className="flex items-center gap-1 rounded-lg bg-green-700 px-3 py-1.5 text-xs font-semibold transition hover:bg-green-600 disabled:opacity-60"
+                          className="flex items-center gap-1 rounded-lg bg-cyan-700 px-3 py-1.5 text-xs font-semibold transition hover:bg-cyan-600 disabled:opacity-60"
                         >
                           <Play size={12} /> Démarrer
                         </button>
@@ -165,7 +188,7 @@ export default function MissionPage() {
                         <button
                           onClick={() => handleTerminer(mission.id_mission)}
                           disabled={actingOn === mission.id_mission}
-                          className="flex items-center gap-1 rounded-lg bg-red-700 px-3 py-1.5 text-xs font-semibold transition hover:bg-red-600 disabled:opacity-60"
+                          className="flex items-center gap-1 rounded-lg bg-slate-700 px-3 py-1.5 text-xs font-semibold transition hover:bg-slate-600 disabled:opacity-60"
                         >
                           <Square size={12} /> Terminer
                         </button>

@@ -1,8 +1,11 @@
-import { useDrone } from "../../context/DroneContext";
+import { useDrone } from "../../context/useDrone";
 import RecordingBadge from "./RecordingBadge";
 import DetectionBox from "./DetectionBox";
 
-export default function VideoOverlay({ showDetections = true, showReticle = true }) {
+export default function VideoOverlay({
+  showDetections = true,
+  showReticle = true,
+}) {
   const { detections, detectorAvailable, connected, simulated } = useDrone();
 
   return (

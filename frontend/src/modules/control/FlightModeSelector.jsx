@@ -1,95 +1,24 @@
-import { Plane, Car } from "lucide-react";
-
-import { useDrone } from "../../context/DroneContext";
-
+import { useDrone } from "../../context/useDrone";
 export default function FlightModeSelector() {
-
-  const {
-
-    flightMode,
-
-    setFlightMode,
-
-  } = useDrone();
-
+  const { flightMode, setFlightMode } = useDrone();
   return (
-
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-3">
-
-      <h3 className="mb-2 text-sm font-semibold">
-
-        Mode de déplacement
-
-      </h3>
-
+    <section className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+      <h3 className="mb-3 text-sm font-semibold">Mode de déplacement</h3>
       <div className="grid grid-cols-2 gap-2">
-
         <button
-
-          onClick={() => setFlightMode("AERIEN")}
-
-          className={`
-            rounded-xl
-
-            p-2
-
-            transition
-
-            ${
-              flightMode === "AERIEN"
-
-                ? "bg-cyan-600"
-
-                : "bg-slate-800"
-            }
-          `}
-        >
-
-          <Plane className="mx-auto" />
-
-          <p className="mt-2 text-sm">
-
-            Aérien
-
-          </p>
-
-        </button>
-
-        <button
-
+          aria-pressed={flightMode === "TERRESTRE"}
           onClick={() => setFlightMode("TERRESTRE")}
-
-          className={`
-            rounded-xl
-
-            p-2
-
-            transition
-
-            ${
-              flightMode === "TERRESTRE"
-
-                ? "bg-cyan-600"
-
-                : "bg-slate-800"
-            }
-          `}
+          className="rounded-lg bg-cyan-700 p-3 text-sm"
         >
-
-          <Car className="mx-auto" />
-
-          <p className="mt-2 text-sm">
-
-            Terrestre
-
-          </p>
-
+          Terrestre
         </button>
-
+        <button
+          disabled
+          className="rounded-lg bg-slate-800 p-3 text-sm text-slate-400"
+        >
+          Aérien indisponible
+        </button>
       </div>
-
-    </div>
-
+    </section>
   );
-
 }

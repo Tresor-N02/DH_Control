@@ -1,80 +1,36 @@
-import {
-    Plus,
-    Minus,
-    LocateFixed,
-    Layers3
-} from "lucide-react";
-
-export default function MapToolbar(){
-
-    return(
-
-        <div
-            className="
-                absolute
-
-                right-3
-
-                top-3
-
-                z-[1000]
-
-                flex
-
-                flex-col
-
-                gap-2
-            "
-        >
-
-            <ToolButton icon={Plus}/>
-
-            <ToolButton icon={Minus}/>
-
-            <ToolButton icon={LocateFixed}/>
-
-            <ToolButton icon={Layers3}/>
-
-        </div>
-
-    );
-
-}
-
-function ToolButton({icon:Icon}){
-
-    return(
-
+import { Plus, Minus, LocateFixed, Navigation } from "lucide-react";
+export default function MapToolbar({
+  onZoomIn,
+  onZoomOut,
+  onLocate,
+  onToggleFollow,
+  following,
+  canLocate,
+}) {
+  return (
+    <div className="absolute right-3 top-3 z-[1000] flex flex-col gap-2">
+      {[
+        [Plus, "Zoom avant", onZoomIn],
+        [Minus, "Zoom arrière", onZoomOut],
+        [LocateFixed, "Recentrer sur le drone", onLocate],
+        [
+          Navigation,
+          following ? "Désactiver le suivi du drone" : "Suivre le drone",
+          onToggleFollow,
+        ],
+      ].map(([Icon, label, action], i) => (
         <button
-
-            className="
-                flex
-
-                h-10
-                w-10
-
-                items-center
-                justify-center
-
-                rounded-lg
-
-                bg-slate-900/90
-
-                border
-
-                border-slate-700
-
-                hover:bg-cyan-600
-
-                transition
-            "
-
+          key={label}
+          aria-label={label}
+          title={label}
+          aria-pressed={i === 3 ? following : undefined}
+          disabled={i >= 2 && !canLocate}
+          onClick={action}
+          className={`flex h-11 w-11 items-center justify-center rounded-lg border border-slate-700 ${i === 3 && following ? "bg-cyan-700" : "bg-slate-900"} disabled:opacity-40`}
         >
-
-            <Icon size={18}/>
-
+          <Icon size={20} />
         </button>
-
-    );
-
+      ))}
+    </div>
+  );
 }

@@ -14,31 +14,31 @@ import ControlPanel from "../modules/control/ControlPanel";
 export default function Dashboard() {
   return (
     <MainLayout>
-      <div className="flex flex-col gap-3 xl:h-full xl:min-h-0">
+      <div className="flex flex-col gap-3 ">
         {/* ==========================
             TELEMETRIE
         ========================== */}
         <section className="shrink-0">
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-6">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <BatteryCard />
+            <SpeedCard />
+            <ObstacleCard />
             <GPSCard />
             <AltitudeCard />
-            <SpeedCard />
             <SignalCard />
-            <ObstacleCard />
           </div>
         </section>
 
         {/* ==========================
             CARTE + CAMERA
         ========================== */}
-        <section className="xl:min-h-0 xl:flex-1">
-          <div className="grid grid-cols-1 gap-2 xl:h-full xl:grid-cols-12">
-            <div className="min-h-[320px] xl:col-span-7 xl:h-full xl:min-h-0">
+        <section className=" ">
+          <div className="grid grid-cols-1 gap-2  xl:grid-cols-12">
+            <div className="h-[420px] min-h-80 xl:col-span-6 ">
               <MapCard />
             </div>
 
-            <div className="min-h-[320px] xl:col-span-5 xl:h-full xl:min-h-0">
+            <div className="h-[420px] min-h-80 xl:col-span-6 ">
               <VideoPanel />
             </div>
           </div>

@@ -1,1 +1,46 @@
 @import "tailwindcss";
+
+@layer base {
+  body {
+    margin: 0;
+    min-width: 320px;
+    background: #020617;
+  }
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:not(:disabled),
+  a {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  :focus-visible {
+    outline: 3px solid #22d3ee;
+    outline-offset: 3px;
+  }
+  button {
+    min-height: 44px;
+  }
+}
+.telemetry-value {
+  font-variant-numeric: tabular-nums;
+  transition: opacity 150ms;
+}
+.telemetry-stale .telemetry-value {
+  opacity: 0.55;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -17,12 +17,12 @@ function ToolbarButton({ icon: Icon, label, onClick, disabled, active }) {
       disabled={disabled}
       title={label}
       aria-label={label}
-      className={`flex h-10 w-10 items-center justify-center rounded-lg transition ${
+      className={`flex h-11 w-11 items-center justify-center rounded-lg transition ${
         disabled
           ? "cursor-not-allowed bg-slate-900/50 text-slate-600"
           : active
-          ? "bg-cyan-600"
-          : "bg-slate-900/80 hover:bg-cyan-600"
+            ? "bg-cyan-600"
+            : "bg-slate-900/80 hover:bg-cyan-600"
       }`}
     >
       <Icon size={18} />
@@ -49,7 +49,9 @@ export default function VideoToolbar({
       />
       <ToolbarButton
         icon={Scan}
-        label={showDetections ? "Masquer les détections" : "Afficher les détections"}
+        label={
+          showDetections ? "Masquer les détections" : "Afficher les détections"
+        }
         onClick={onToggleDetections}
         active={showDetections}
       />

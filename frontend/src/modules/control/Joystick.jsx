@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TriangleAlert } from "lucide-react";
 
-import { useDrone } from "../../context/DroneContext";
+import { useDrone } from "../../context/useDrone";
 
 const RADIUS = 50; // px the knob can travel from center
 const SEND_INTERVAL_MS = 120; // how often we re-send while held, for the watchdog
@@ -15,7 +15,13 @@ function vectorToCommand(nx, ny) {
   if (magnitude < 0.12) return { action: "stop", speed: 0 };
 
   const action =
-    Math.abs(ny) >= Math.abs(nx) ? (ny < 0 ? "avancer" : "reculer") : nx < 0 ? "gauche" : "droite";
+    Math.abs(ny) >= Math.abs(nx)
+      ? ny < 0
+        ? "avancer"
+        : "reculer"
+      : nx < 0
+        ? "gauche"
+        : "droite";
 
   return { action, speed: Math.round(magnitude * 100) };
 }
@@ -31,21 +37,71 @@ const LABELS = {
 export default function Joystick() {
   const { sendCommand, stop, obstacleDetected, distanceObstacle } = useDrone();
 
-  const baseRef = useRef(null);
-  const lastSentRef = useRef(0);
-
   const [isDragging, setIsDragging] = useState(false);
   const [knob, setKnob] = useState({ x: 0, y: 0 });
   const [current, setCurrent] = useState({ action: "stop", speed: 0 });
 
+  const baseRef = useRef(null);
+  const lastSentRef = useRef(0);
+  const heldRef = useRef({ action: "stop", speed: 0 });
+  const commandRef = useRef(sendCommand);
+  useEffect(() => {
+    commandRef.current = sendCommand;
+  }, [sendCommand]);
+  useEffect(() => {
+    const halt = () => {
+      heldRef.current = { action: "stop", speed: 0 };
+      setIsDragging(false);
+      setKnob({ x: 0, y: 0 });
+      setCurrent({ action: "stop", speed: 0 });
+      commandRef.current("stop", 0);
+    };
+    const visibility = () => {
+      if (document.hidden) halt();
+    };
+    const timer = setInterval(() => {
+      const held = heldRef.current;
+      if (
+        held.action !== "stop" &&
+        commandRef.current(held.action, held.speed) === false
+      ) {
+        heldRef.current = { action: "stop", speed: 0 };
+        setIsDragging(false);
+        setKnob({ x: 0, y: 0 });
+        setCurrent({ action: "stop", speed: 0 });
+        commandRef.current("stop", 0);
+      }
+    }, SEND_INTERVAL_MS);
+    const clearHeld = () => {
+      heldRef.current = { action: "stop", speed: 0 };
+      setIsDragging(false);
+      setKnob({ x: 0, y: 0 });
+      setCurrent({ action: "stop", speed: 0 });
+    };
+    window.addEventListener("drone-stop", clearHeld);
+    window.addEventListener("blur", halt);
+    window.addEventListener("pagehide", halt);
+    document.addEventListener("visibilitychange", visibility);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("drone-stop", clearHeld);
+      window.removeEventListener("blur", halt);
+      window.removeEventListener("pagehide", halt);
+      document.removeEventListener("visibilitychange", visibility);
+      if (heldRef.current.action !== "stop") commandRef.current("stop", 0);
+    };
+  }, []);
+
   const dispatch = useCallback(
     (action, speed, { force = false } = {}) => {
+      heldRef.current = { action, speed };
       const now = performance.now();
       if (!force && now - lastSentRef.current < SEND_INTERVAL_MS) return;
       lastSentRef.current = now;
-      sendCommand(action, speed);
+      if (sendCommand(action, speed) === false)
+        heldRef.current = { action: "stop", speed: 0 };
     },
-    [sendCommand]
+    [sendCommand],
   );
 
   const updateFromClientPoint = useCallback(
@@ -69,7 +125,7 @@ export default function Joystick() {
       setCurrent({ action, speed });
       dispatch(action, speed);
     },
-    [dispatch]
+    [dispatch],
   );
 
   // Window-level listeners only exist while actually dragging, and are
@@ -117,19 +173,38 @@ export default function Joystick() {
     };
 
     const handleKeyDown = (event) => {
+      if (
+        event.target instanceof HTMLElement &&
+        (event.target.isContentEditable ||
+          ["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(
+            event.target.tagName,
+          ))
+      )
+        return;
       if (event.key === " ") {
         event.preventDefault();
+        heldRef.current = { action: "stop", speed: 0 };
+        setCurrent({ action: "stop", speed: 0 });
         stop();
         return;
       }
       const action = KEY_ACTIONS[event.key];
       if (!action) return;
       event.preventDefault();
+      if (event.repeat) return;
       setCurrent({ action, speed: 100 });
       dispatch(action, 100, { force: true });
     };
 
     const handleKeyUp = (event) => {
+      if (
+        event.target instanceof HTMLElement &&
+        (event.target.isContentEditable ||
+          ["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(
+            event.target.tagName,
+          ))
+      )
+        return;
       if (KEY_ACTIONS[event.key]) {
         setCurrent({ action: "stop", speed: 0 });
         dispatch("stop", 0, { force: true });
@@ -154,10 +229,12 @@ export default function Joystick() {
         <div
           ref={baseRef}
           onPointerDown={handlePointerDown}
+          role="group"
+          aria-label="Joystick tactile. Utilisez les flèches du clavier pour piloter et Espace pour arrêter."
           className="relative h-[120px] w-[120px] touch-none select-none rounded-full border border-slate-700 bg-slate-800"
         >
           {/* directional guides */}
-          <div className="absolute inset-0 flex items-center justify-center text-[10px] text-slate-500">
+          <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-500">
             <span className="absolute top-2">AVANT</span>
             <span className="absolute bottom-2">ARRIÈRE</span>
             <span className="absolute left-2">G</span>
@@ -169,8 +246,8 @@ export default function Joystick() {
               blockedForward
                 ? "border-red-400 bg-red-500/80"
                 : current.action !== "stop"
-                ? "border-cyan-300 bg-cyan-500"
-                : "border-cyan-600 bg-cyan-700"
+                  ? "border-cyan-300 bg-cyan-500"
+                  : "border-cyan-600 bg-cyan-700"
             }`}
             style={{
               transform: `translate(-50%, -50%) translate(${knob.x}px, ${knob.y}px)`,
@@ -183,7 +260,10 @@ export default function Joystick() {
           {blockedForward ? (
             <span className="flex items-center gap-1 font-semibold text-red-400">
               <TriangleAlert size={14} />
-              Obstacle à {distanceObstacle != null ? `${Math.round(distanceObstacle)} cm` : "proximité"}
+              Obstacle à{" "}
+              {distanceObstacle != null
+                ? `${Math.round(distanceObstacle)} cm`
+                : "proximité"}
             </span>
           ) : (
             <span className="text-slate-400">
@@ -201,7 +281,7 @@ export default function Joystick() {
         STOP
       </button>
 
-      <div className="mt-2 text-center text-[11px] text-slate-400">
+      <div className="mt-2 text-center text-xs text-slate-400">
         Glisser le joystick, ou clavier : ↑ ↓ ← → &nbsp;|&nbsp; Espace = STOP
       </div>
     </div>

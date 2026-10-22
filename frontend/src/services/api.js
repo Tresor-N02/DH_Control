@@ -1,7 +1,8 @@
 import axios from "axios";
 
 // Vite exposes env vars prefixed VITE_ on import.meta.env -- see .env.example.
-export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+export const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:8000";
 export const WS_BASE_URL =
   import.meta.env.VITE_WS_URL || API_BASE_URL.replace(/^http/, "ws");
 
@@ -16,7 +17,7 @@ export function setToken(token) {
   else localStorage.removeItem(TOKEN_KEY);
 }
 
-const client = axios.create({ baseURL: API_BASE_URL });
+const client = axios.create({ baseURL: API_BASE_URL, timeout: 10000 });
 
 client.interceptors.request.use((config) => {
   const token = getToken();
@@ -70,17 +71,25 @@ export async function fetchLatestTelemetry(droneId) {
 }
 
 export async function fetchTelemetryHistory(droneId, limit = 100) {
-  const { data } = await client.get(`/api/telemetry/${droneId}/history`, { params: { limit } });
+  const { data } = await client.get(`/api/telemetry/${droneId}/history`, {
+    params: { limit },
+  });
   return data;
 }
 
-export async function sendCommandRest(droneId, action) {
-  const { data } = await client.post(`/api/control/${droneId}/command`, { action });
+export async function sendCommandRest(droneId, action, speed) {
+  const { data } = await client.post(
+    `/api/control/${droneId}/command`,
+    { action, speed },
+    { timeout: 5000 },
+  );
   return data;
 }
 
 export async function fetchAlerts(droneId) {
-  const { data } = await client.get("/api/alerts", { params: { drone_id: droneId } });
+  const { data } = await client.get("/api/alerts", {
+    params: { drone_id: droneId },
+  });
   return data;
 }
 
@@ -99,12 +108,18 @@ export async function fetchDetectorStatus() {
 // ==========================================================
 
 export async function fetchMissions(droneId) {
-  const { data } = await client.get("/api/missions", { params: { drone_id: droneId } });
+  const { data } = await client.get("/api/missions", {
+    params: { drone_id: droneId },
+  });
   return data;
 }
 
 export async function createMission(droneId, titre) {
-  const { data } = await client.post("/api/missions", { titre }, { params: { drone_id: droneId } });
+  const { data } = await client.post(
+    "/api/missions",
+    { titre },
+    { params: { drone_id: droneId } },
+  );
   return data;
 }
 
@@ -123,7 +138,9 @@ export async function terminerMission(missionId) {
 // ==========================================================
 
 export async function fetchHistorique(droneId, limit = 50) {
-  const { data } = await client.get("/api/history", { params: { drone_id: droneId, limit } });
+  const { data } = await client.get("/api/history", {
+    params: { drone_id: droneId, limit },
+  });
   return data;
 }
 

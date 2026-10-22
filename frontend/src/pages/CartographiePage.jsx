@@ -6,7 +6,7 @@ import AltitudeCard from "../modules/telemetry/AltitudeCard";
 export default function CartographiePage() {
   return (
     <MainLayout>
-      <div className="flex flex-col gap-3 xl:h-full xl:min-h-0">
+      <div className="flex flex-col gap-3 ">
         <section className="shrink-0">
           <div className="grid grid-cols-2 gap-2 lg:w-1/2">
             <GPSCard />
@@ -14,7 +14,7 @@ export default function CartographiePage() {
           </div>
         </section>
 
-        <section className="xl:min-h-0 xl:flex-1">
+        <section className="h-[60vh] min-h-80">
           <MapCard />
         </section>
       </div>

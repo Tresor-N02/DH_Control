@@ -7,7 +7,7 @@ import VideoPage from "./pages/VideoPage";
 import TelemetriePage from "./pages/TelemetriePage";
 import ControlePage from "./pages/ControlePage";
 import MissionPage from "./pages/MissionPage";
-import { useAuth } from "./context/AuthContext";
+import { useAuth } from "./context/useAuth";
 
 function ProtectedLayout() {
   const { token, loading } = useAuth();

@@ -1,8 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import * as api from "../services/api";
 
-const AuthContext = createContext(null);
+import { AuthContext } from "./contexts";
 
 export function AuthProvider({ children }) {
   const [token, setTokenState] = useState(() => api.getToken());
@@ -57,7 +57,7 @@ export function AuthProvider({ children }) {
       setError(
         err?.response?.status === 401
           ? "Email ou mot de passe incorrect."
-          : "Impossible de contacter le serveur backend."
+          : "Impossible de contacter le serveur backend.",
       );
       return false;
     }
@@ -71,14 +71,8 @@ export function AuthProvider({ children }) {
 
   const value = useMemo(
     () => ({ token, user, loading, error, login, logout }),
-    [token, user, loading, error, login, logout]
+    [token, user, loading, error, login, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
-  return ctx;
 }

@@ -1,89 +1,91 @@
-# DH_MIL -- Frontend
+# DH_MIL — Frontend
 
-React 19 + Vite + Tailwind 4 ground-control dashboard for the hybrid
-drone: analog joystick, live telemetry, GPS map, and the ESP32-CAM feed
-with YOLO detection overlays -- all driven by the [backend](../backend),
-not simulated.
+Interface React 19, Vite et Tailwind CSS pour superviser le drone hybride.
+Les données viennent du backend FastAPI ; celui-ci peut basculer en simulation.
 
-## Setup
+## Démarrage
 
-```bash
-npm install
-cp .env.example .env      # only needed if the backend isn't on localhost:8000
+```sh
+npm ci
 npm run dev
 ```
 
-Then open `http://localhost:5173` and log in with the account `python
-seed.py` created on the backend (default `admin@dh-mil.local` /
-`ChangeMe123!`).
+Copier `.env.example` vers `.env` si le backend ne se trouve pas sur
+`http://localhost:8000`. Se connecter avec un compte créé côté backend.
 
-`npm run build` produces a static `dist/` you can serve with anything
-(nginx, `serve`, etc.) -- just make sure `VITE_API_URL`/`VITE_WS_URL`
-are set correctly at build time for wherever the backend actually runs.
-
-## What changed from the original mock
-
-The project already had a solid dashboard scaffold (`DroneContext`,
-telemetry cards, the Leaflet map, the video panel), but everything was
-simulated client-side and there was no `services/` layer at all. This
-pass:
-
-- Added `services/api.js` (REST) and `services/socket.js` (the
-  realtime WebSocket, one connection per drone, with auto-reconnect).
-- Added `context/AuthContext.jsx` + `pages/LoginPage.jsx` -- the
-  backend requires a JWT on every route (and the project's own class
-  diagram already specified `Utilisateur.login()/logout()`), so this
-  was missing rather than optional.
-- Rewrote `context/DroneContext.jsx` to source every field from the
-  backend instead of a `setInterval` simulation, while keeping the
-  exact same field names, so `BatteryCard`, `GPSCard`, `AltitudeCard`,
-  `SpeedCard`, `SignalCard`, `MapCard`/`LeafletMap` and `ActionButtons`
-  needed **no changes at all**. Numeric telemetry holds its last known
-  value rather than resetting to 0 on disconnect (a ground-control
-  display that suddenly shows "0% battery" during a dropout would be
-  actively misleading) -- the separate `connected`/`simulated` flags
-  are what tell the operator the link state.
-- Rebuilt `Joystick.jsx` as an actual analog joystick (drag or arrow
-  keys) that sends a real 0-100% speed, instead of a directional
-  button grid. It also shows a red obstacle warning fed directly by the
-  ultrasonic reading.
-- Wired `VideoFeed`/`VideoOverlay`/`RecordingBadge` to the real
-  ESP32-CAM frames and YOLO detections relayed by the backend (was: one
-  static stock photo and two hardcoded detection boxes).
-- Added `modules/telemetry/ObstacleCard.jsx` -- the one sensor reading
-  (ultrasonic distance) that didn't already have a place on the
-  dashboard.
-- `Navbar` now reflects real connection/simulation/battery state and
-  has a working alerts bell + logout, instead of static always-green
-  icons.
-
-## Structure
-
-```
-src/
-  services/        api.js (REST), socket.js (WebSocket)
-  context/          AuthContext, DroneContext -- both consumed via useAuth()/useDrone()
-  pages/             LoginPage, Dashboard
-  modules/
-    control/           Joystick (analog), FlightModeSelector, ActionButtons
-    telemetry/          Battery/GPS/Altitude/Speed/Signal/ObstacleCard
-    map/                 LeafletMap, MapCard
-    video/                VideoFeed, VideoOverlay, DetectionBox, RecordingBadge
-  components/
-    layout/    MainLayout, Navbar, Sidebar, Footer
-    common/     Card, CardHeader, CardBody
+```sh
+npm run lint
+npm run build
+npm run preview
 ```
 
-## Known gaps
+Configurer `VITE_API_URL` et éventuellement `VITE_WS_URL` avant le build.
+Le serveur de déploiement doit rediriger les routes de l’application vers
+`index.html`.
 
-- Only one drone is supported end-to-end (the project seeds exactly
-  one, "Drone Hybride 01"); `DroneContext` picks `drones[0]`. Multiple
-  drones would need a picker.
-- `returnHome()` sends a plain stop, with a message explaining why --
-  there's no waypoint navigation on the backend/firmware to actually
-  return home with.
-- The `Sidebar`'s other menu items (Missions, Médical, Historique,
-  Paramètres) are still decorative; only the Dashboard route is wired
-  up, matching what was actually asked for. The backend already has
-  REST endpoints for missions/history/alerts if you want to build
-  those screens next.
+## Parcours et états
+
+- Navigation latérale sur ordinateur, menu déroulant sur mobile.
+- Tableau de bord : batterie, vitesse et obstacle en premier, puis GPS,
+  altitude, signal, carte, vidéo et commandes.
+- Contrôle : caméra et indicateurs à proximité du joystick.
+- Arrêt d’urgence accessible sur toutes les pages authentifiées.
+- Mode simulation indiqué par un bandeau permanent. La caméra indique
+  séparément si son image est simulée.
+- Télémétrie et vidéo périmées après plus de cinq secondes sans mise à jour.
+  Les anciennes valeurs sont atténuées, les déplacements sont bloqués et
+  le marqueur GPS n’est plus présenté comme une position actuelle.
+- Batterie et signal affichés comme indisponibles sur le matériel actuel :
+  le firmware ne transmet pas ces mesures. Le simulateur peut les fournir.
+- Les commandes de vol et le retour automatique sont désactivés avec
+  explication : ces capacités ne sont pas disponibles sur le matériel.
+
+## Commandes et carte
+
+Le joystick fonctionne au pointeur ou avec les flèches du clavier.
+Il renouvelle les commandes toutes les 120 ms pendant le maintien.
+Relâcher, appuyer sur Espace, quitter la page ou perdre le focus demande
+un arrêt. Les champs de formulaire et boutons conservent leur comportement
+clavier normal.
+
+Les retours de commande distinguent envoi, acceptation, refus et absence
+de confirmation après quatre secondes. Le secours REST conserve la vitesse.
+Une confirmation vient du serveur ; elle ne constitue pas une mesure
+indépendante de l’immobilité des moteurs. Les protections du backend et
+du firmware restent nécessaires.
+
+La carte dispose du zoom, du recentrage et d’un suivi activable. Déplacer
+la carte à la main suspend le suivi. Sans position valide récente, aucun
+marqueur actuel n’est affiché.
+
+La vidéo conserve le cadrage complet. Les boîtes de détection utilisent
+exactement la surface de l’image, y compris lorsque des bandes apparaissent.
+
+## Alertes et limites actuelles
+
+L’ouverture des alertes ne les marque pas comme lues. Une action explicite
+marque les alertes chargées depuis la base via l’API. Les nouvelles alertes
+WebSocket ne contiennent pas encore leur identifiant de base : leur lecture
+reste locale à la session jusqu’à ce que le protocole serveur fournisse cet ID.
+Les alertes YOLO enregistrées sans diffusion WebSocket apparaissent au prochain
+chargement.
+
+L’application sélectionne le premier drone disponible. Un écran explique
+l’absence de drone ou une erreur serveur et propose de réessayer.
+Les missions sont un suivi de statut ; elles ne déclenchent pas de navigation
+autonome.
+
+## Vérification manuelle
+
+1. Vérifier les vues à 390 × 844 et 1366 × 768, puis à 200 % de zoom.
+2. Ouvrir le menu mobile et parcourir toutes les pages.
+3. Maintenir le joystick sans le déplacer, puis déclencher l’arrêt d’urgence :
+   les envois de mouvement doivent cesser.
+4. Saisir du texte et utiliser les flèches dans le titre d’une mission :
+   aucune commande de déplacement ne doit partir.
+5. Interrompre les messages : après cinq secondes, vérifier les états périmés
+   de la vidéo, des mesures et de la carte.
+6. Vérifier un refus d’arrêt, une absence de confirmation, une liste de drones
+   vide et une erreur réseau.
+7. Vérifier le cadrage vidéo et les boîtes sur une image réelle aux proportions
+   différentes de celles du panneau.
