@@ -1,0 +1,40 @@
+# ============================================================
+# op_control backend -- dependencies
+# Versions below are pinned to what was actually installed and
+# tested while building this project (Python 3.12).
+# ============================================================
+
+# --- Web framework / server ---
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+python-multipart==0.0.32
+websockets==17.1
+
+# --- Database ---
+sqlalchemy==2.0.52
+pymysql==1.2.0          # MySQL driver (matches the provided op_control schema)
+cryptography==46.0.6    # required by pymysql for sha256_password / caching_sha2
+
+# --- Settings / validation ---
+pydantic==2.13.5
+pydantic-settings==2.15.0
+email-validator==2.3.0  # required by pydantic's EmailStr (used on Utilisateur.email)
+python-dotenv==1.2.2
+
+# --- Auth ---
+python-jose[cryptography]==3.5.0
+bcrypt==5.0.0
+# NB: we call bcrypt directly (app/security.py) rather than through passlib.
+# passlib 1.7.4 (last released 2020, unmaintained) hard-crashes against
+# bcrypt>=4.1 -- a known, unresolved upstream incompatibility. Don't add
+# passlib back without also pinning bcrypt<4.1 or you will hit:
+# "AttributeError: module 'bcrypt' has no attribute '__about__'"
+
+# --- HTTP client (talks to the ESP32 modules) ---
+httpx==0.28.1
+
+# --- Computer vision / YOLO ---
+opencv-python-headless==4.13.0.92
+numpy==2.4.4
+Pillow==12.1.1
+ultralytics==8.4.138    # pulls in torch/torchvision on first install (~1-2 GB, CPU build is fine)
