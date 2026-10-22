@@ -1,15 +1,34 @@
-﻿export default function CardHeader({ title, icon: Icon, right }) {
+﻿import MuiCardHeader from "@mui/material/CardHeader";
+import Box from "@mui/material/Box";
+export default function CardHeader({ title, icon: Icon, right }) {
   return (
-    <div className="flex min-h-14 items-center justify-between gap-3 border-b border-line px-5 py-3">
-      <div className="flex min-w-0 items-center gap-3">
-        {Icon && (
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-accent-ink">
+    <MuiCardHeader
+      title={title}
+      avatar={
+        Icon ? (
+          <Box
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: 2,
+              bgcolor: "action.hover",
+              color: "secondary.main",
+              display: "grid",
+              placeItems: "center",
+            }}
+          >
             <Icon size={18} />
-          </span>
-        )}
-        <h3 className="text-base font-semibold leading-snug">{title}</h3>
-      </div>
-      {right}
-    </div>
+          </Box>
+        ) : undefined
+      }
+      action={right}
+      slotProps={{
+        title: {
+          component: "h3",
+          variant: "subtitle1",
+          sx: { lineHeight: 1.4 },
+        },
+      }}
+    />
   );
 }

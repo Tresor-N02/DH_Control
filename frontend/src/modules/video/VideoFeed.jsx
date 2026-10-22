@@ -1,3 +1,4 @@
+import { Box, Stack, Typography } from "@mui/material";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CameraOff } from "lucide-react";
 import { useDrone } from "../../context/useDrone";
@@ -17,7 +18,10 @@ export default function VideoFeed() {
   const [showReticle, setShowReticle] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [ratio, setRatio] = useState(4 / 3);
-  const [size, setSize] = useState({ width: 0, height: 0 });
+  const [size, setSize] = useState({
+    width: 0,
+    height: 0,
+  });
   const [fullscreenError, setFullscreenError] = useState("");
   useEffect(() => {
     const change = () =>
@@ -48,21 +52,43 @@ export default function VideoFeed() {
   }, []);
   const width = Math.min(size.width, size.height * ratio);
   return (
-    <div
+    <Box
       ref={containerRef}
-      className="relative flex h-full min-h-72 items-center justify-center overflow-hidden rounded-xl bg-black text-white"
+      sx={{
+        position: "relative",
+        display: "flex",
+        height: "100%",
+        minHeight: 288,
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+        bgcolor: "#000",
+        color: "#fff",
+      }}
     >
       {videoFrame ? (
-        <div className="relative" style={{ width, height: width / ratio }}>
-          <img
+        <Box
+          sx={{
+            position: "relative",
+            width,
+            height: width / ratio,
+          }}
+        >
+          <Box
+            component="img"
             src={videoFrame}
             onLoad={(e) =>
               setRatio(
                 e.currentTarget.naturalWidth / e.currentTarget.naturalHeight,
               )
             }
-            className={`block h-full w-full ${frameStale ? "opacity-40" : ""}`}
             alt="Vue complète de la caméra du drone"
+            sx={{
+              display: "block",
+              width: "100%",
+              height: "100%",
+              opacity: frameStale ? 0.4 : 1,
+            }}
           />
           {!frameStale &&
             showDetections &&
@@ -77,21 +103,55 @@ export default function VideoFeed() {
               />
             ))}
           {showReticle && (
-            <div
+            <Box
               aria-hidden="true"
-              className="pointer-events-none absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-400"
+              sx={{
+                position: "absolute",
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%)",
+                width: 40,
+                height: 40,
+                borderRadius: "50%",
+                border: "1px solid #22d3ee",
+                pointerEvents: "none",
+              }}
             />
           )}
-        </div>
+        </Box>
       ) : (
-        <div className="flex flex-col items-center gap-2 text-slate-400">
+        <Stack
+          spacing={1}
+          sx={{
+            alignItems: "center",
+            color: "#94a3b8",
+            px: 2,
+          }}
+        >
           <CameraOff size={32} />
-          <p>En attente d’une image caméra…</p>
-        </div>
+          <Typography>En attente d’une image caméra…</Typography>
+        </Stack>
       )}
-      <div className="pointer-events-none absolute left-3 top-3 right-16 space-y-2 text-xs">
-        <p
-          className={`w-fit rounded-lg bg-slate-950/90 px-3 py-2 ${frameStale ? "text-amber-200" : "text-cyan-200"}`}
+      <Stack
+        spacing={1}
+        sx={{
+          position: "absolute",
+          left: 12,
+          top: 12,
+          right: 64,
+          pointerEvents: "none",
+        }}
+      >
+        <Typography
+          variant="body2"
+          sx={{
+            width: "fit-content",
+            borderRadius: 1,
+            bgcolor: "rgba(2,6,23,0.9)",
+            px: 1.5,
+            py: 1,
+            color: frameStale ? "#fde68a" : "#a5f3fc",
+          }}
         >
           {frameStale
             ? "Caméra indisponible · image non actualisée"
@@ -99,20 +159,35 @@ export default function VideoFeed() {
               ? "Image simulée"
               : "Caméra en direct"}
           {frameAge != null ? ` · ${frameAge} s` : ""}
-        </p>
+        </Typography>
         {detectorAvailable === false && (
-          <p className="w-fit rounded-lg bg-slate-950/90 p-2 text-amber-200">
+          <Typography
+            variant="body2"
+            sx={{
+              width: "fit-content",
+              borderRadius: 1,
+              bgcolor: "rgba(2,6,23,0.9)",
+              p: 1,
+              color: "#fde68a",
+            }}
+          >
             Détection YOLO indisponible
-          </p>
+          </Typography>
         )}
-      </div>
+      </Stack>
       {fullscreenError && (
-        <p
+        <Typography
           role="status"
-          className="absolute bottom-3 left-3 text-sm text-amber-200"
+          variant="body2"
+          sx={{
+            position: "absolute",
+            bottom: 12,
+            left: 12,
+            color: "#fde68a",
+          }}
         >
           {fullscreenError}
-        </p>
+        </Typography>
       )}
       <VideoToolbar
         videoFrame={frameStale ? null : videoFrame}
@@ -123,6 +198,6 @@ export default function VideoFeed() {
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
       />
-    </div>
+    </Box>
   );
 }

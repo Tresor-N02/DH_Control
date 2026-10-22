@@ -1,28 +1,57 @@
 import { PlaneTakeoff, PlaneLanding, House } from "lucide-react";
+import { Box, Button, Typography } from "@mui/material";
 export default function ActionButtons() {
   return (
-    <section className="rounded-xl border border-line bg-panel p-4">
-      <h3 className="mb-3 text-sm font-semibold">Fonctions du matériel</h3>
-      <div className="grid grid-cols-3 gap-2">
+    <Box component="section">
+      <Typography
+        component="h3"
+        sx={{
+          fontWeight: 600,
+          mb: 2,
+        }}
+      >
+        Fonctions du matériel
+      </Typography>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          gap: 1,
+        }}
+      >
         {[
           [PlaneTakeoff, "Décoller"],
           [PlaneLanding, "Atterrir"],
           [House, "Retour au départ"],
         ].map(([Icon, label]) => (
-          <button
+          <Button
             key={label}
+            variant="outlined"
             disabled
-            className="flex flex-col items-center gap-2 rounded-lg bg-muted p-3 text-sm text-subtle"
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
+              p: 1,
+              minWidth: 0,
+              lineHeight: 1.4,
+            }}
           >
             <Icon size={20} />
             {label}
-          </button>
+          </Button>
         ))}
-      </div>
-      <p className="mt-3 text-xs text-subtle">
+      </Box>
+      <Typography
+        variant="body2"
+        sx={{
+          color: "text.secondary",
+          mt: 2,
+        }}
+      >
         Indisponibles : aucun contrôleur de vol ni navigation autonome reliés.
         Utilisez le joystick pour le déplacement terrestre.
-      </p>
-    </section>
+      </Typography>
+    </Box>
   );
 }

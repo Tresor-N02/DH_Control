@@ -1,8 +1,7 @@
+import { Box, Stack, Typography, Button, Paper } from "@mui/material";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TriangleAlert } from "lucide-react";
-
 import { useDrone } from "../../context/useDrone";
-
 const RADIUS = 50; // px the knob can travel from center
 const SEND_INTERVAL_MS = 120; // how often we re-send while held, for the watchdog
 
@@ -12,8 +11,11 @@ const SEND_INTERVAL_MS = 120; // how often we re-send while held, for the watchd
 // the firmware can't blend "forward" and "turn" into one motion.
 function vectorToCommand(nx, ny) {
   const magnitude = Math.min(1, Math.hypot(nx, ny));
-  if (magnitude < 0.12) return { action: "stop", speed: 0 };
-
+  if (magnitude < 0.12)
+    return {
+      action: "stop",
+      speed: 0,
+    };
   const action =
     Math.abs(ny) >= Math.abs(nx)
       ? ny < 0
@@ -22,10 +24,11 @@ function vectorToCommand(nx, ny) {
       : nx < 0
         ? "gauche"
         : "droite";
-
-  return { action, speed: Math.round(magnitude * 100) };
+  return {
+    action,
+    speed: Math.round(magnitude * 100),
+  };
 }
-
 const LABELS = {
   avancer: "Avancer",
   reculer: "Reculer",
@@ -33,27 +36,42 @@ const LABELS = {
   droite: "Droite",
   stop: "Stop",
 };
-
 export default function Joystick() {
   const { sendCommand, stop, obstacleDetected, distanceObstacle } = useDrone();
-
   const [isDragging, setIsDragging] = useState(false);
-  const [knob, setKnob] = useState({ x: 0, y: 0 });
-  const [current, setCurrent] = useState({ action: "stop", speed: 0 });
-
+  const [knob, setKnob] = useState({
+    x: 0,
+    y: 0,
+  });
+  const [current, setCurrent] = useState({
+    action: "stop",
+    speed: 0,
+  });
   const baseRef = useRef(null);
   const lastSentRef = useRef(0);
-  const heldRef = useRef({ action: "stop", speed: 0 });
+  const heldRef = useRef({
+    action: "stop",
+    speed: 0,
+  });
   const commandRef = useRef(sendCommand);
   useEffect(() => {
     commandRef.current = sendCommand;
   }, [sendCommand]);
   useEffect(() => {
     const halt = () => {
-      heldRef.current = { action: "stop", speed: 0 };
+      heldRef.current = {
+        action: "stop",
+        speed: 0,
+      };
       setIsDragging(false);
-      setKnob({ x: 0, y: 0 });
-      setCurrent({ action: "stop", speed: 0 });
+      setKnob({
+        x: 0,
+        y: 0,
+      });
+      setCurrent({
+        action: "stop",
+        speed: 0,
+      });
       commandRef.current("stop", 0);
     };
     const visibility = () => {
@@ -65,18 +83,36 @@ export default function Joystick() {
         held.action !== "stop" &&
         commandRef.current(held.action, held.speed) === false
       ) {
-        heldRef.current = { action: "stop", speed: 0 };
+        heldRef.current = {
+          action: "stop",
+          speed: 0,
+        };
         setIsDragging(false);
-        setKnob({ x: 0, y: 0 });
-        setCurrent({ action: "stop", speed: 0 });
+        setKnob({
+          x: 0,
+          y: 0,
+        });
+        setCurrent({
+          action: "stop",
+          speed: 0,
+        });
         commandRef.current("stop", 0);
       }
     }, SEND_INTERVAL_MS);
     const clearHeld = () => {
-      heldRef.current = { action: "stop", speed: 0 };
+      heldRef.current = {
+        action: "stop",
+        speed: 0,
+      };
       setIsDragging(false);
-      setKnob({ x: 0, y: 0 });
-      setCurrent({ action: "stop", speed: 0 });
+      setKnob({
+        x: 0,
+        y: 0,
+      });
+      setCurrent({
+        action: "stop",
+        speed: 0,
+      });
     };
     window.addEventListener("drone-stop", clearHeld);
     window.addEventListener("blur", halt);
@@ -91,19 +127,23 @@ export default function Joystick() {
       if (heldRef.current.action !== "stop") commandRef.current("stop", 0);
     };
   }, []);
-
   const dispatch = useCallback(
     (action, speed, { force = false } = {}) => {
-      heldRef.current = { action, speed };
+      heldRef.current = {
+        action,
+        speed,
+      };
       const now = performance.now();
       if (!force && now - lastSentRef.current < SEND_INTERVAL_MS) return;
       lastSentRef.current = now;
       if (sendCommand(action, speed) === false)
-        heldRef.current = { action: "stop", speed: 0 };
+        heldRef.current = {
+          action: "stop",
+          speed: 0,
+        };
     },
     [sendCommand],
   );
-
   const updateFromClientPoint = useCallback(
     (clientX, clientY) => {
       const base = baseRef.current;
@@ -111,7 +151,6 @@ export default function Joystick() {
       const rect = base.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
-
       let dx = clientX - cx;
       let dy = clientY - cy;
       const dist = Math.hypot(dx, dy);
@@ -119,10 +158,15 @@ export default function Joystick() {
         dx = (dx / dist) * RADIUS;
         dy = (dy / dist) * RADIUS;
       }
-      setKnob({ x: dx, y: dy });
-
+      setKnob({
+        x: dx,
+        y: dy,
+      });
       const { action, speed } = vectorToCommand(dx / RADIUS, dy / RADIUS);
-      setCurrent({ action, speed });
+      setCurrent({
+        action,
+        speed,
+      });
       dispatch(action, speed);
     },
     [dispatch],
@@ -133,29 +177,33 @@ export default function Joystick() {
   // state, so there's nothing for the render to read out of a ref.
   useEffect(() => {
     if (!isDragging) return undefined;
-
     const handleMove = (event) => {
       const point = event.touches ? event.touches[0] : event;
       updateFromClientPoint(point.clientX, point.clientY);
     };
     const handleUp = () => {
       setIsDragging(false);
-      setKnob({ x: 0, y: 0 });
-      setCurrent({ action: "stop", speed: 0 });
-      dispatch("stop", 0, { force: true });
+      setKnob({
+        x: 0,
+        y: 0,
+      });
+      setCurrent({
+        action: "stop",
+        speed: 0,
+      });
+      dispatch("stop", 0, {
+        force: true,
+      });
     };
-
     window.addEventListener("pointermove", handleMove);
     window.addEventListener("pointerup", handleUp);
     window.addEventListener("pointercancel", handleUp);
-
     return () => {
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
       window.removeEventListener("pointercancel", handleUp);
     };
   }, [isDragging, updateFromClientPoint, dispatch]);
-
   function handlePointerDown(event) {
     setIsDragging(true);
     updateFromClientPoint(event.clientX, event.clientY);
@@ -171,7 +219,6 @@ export default function Joystick() {
       ArrowLeft: "gauche",
       ArrowRight: "droite",
     };
-
     const handleKeyDown = (event) => {
       if (
         event.target instanceof HTMLElement &&
@@ -183,8 +230,14 @@ export default function Joystick() {
         return;
       if (event.key === " ") {
         event.preventDefault();
-        heldRef.current = { action: "stop", speed: 0 };
-        setCurrent({ action: "stop", speed: 0 });
+        heldRef.current = {
+          action: "stop",
+          speed: 0,
+        };
+        setCurrent({
+          action: "stop",
+          speed: 0,
+        });
         stop();
         return;
       }
@@ -192,10 +245,14 @@ export default function Joystick() {
       if (!action) return;
       event.preventDefault();
       if (event.repeat) return;
-      setCurrent({ action, speed: 100 });
-      dispatch(action, 100, { force: true });
+      setCurrent({
+        action,
+        speed: 100,
+      });
+      dispatch(action, 100, {
+        force: true,
+      });
     };
-
     const handleKeyUp = (event) => {
       if (
         event.target instanceof HTMLElement &&
@@ -206,11 +263,15 @@ export default function Joystick() {
       )
         return;
       if (KEY_ACTIONS[event.key]) {
-        setCurrent({ action: "stop", speed: 0 });
-        dispatch("stop", 0, { force: true });
+        setCurrent({
+          action: "stop",
+          speed: 0,
+        });
+        dispatch("stop", 0, {
+          force: true,
+        });
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
     return () => {
@@ -218,72 +279,181 @@ export default function Joystick() {
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, [dispatch, stop]);
-
   const blockedForward = obstacleDetected && current.action === "avancer";
-
   return (
-    <div className="rounded-xl border border-line bg-panel p-5">
-      <h3 className="mb-5 text-lg font-semibold">Contrôle du drone</h3>
-
-      <div className="flex flex-col items-center">
-        <div
+    <Paper
+      variant="outlined"
+      sx={{
+        p: 2.5,
+      }}
+    >
+      <Typography
+        component="h3"
+        variant="h6"
+        sx={{
+          mb: 2.5,
+        }}
+      >
+        Contrôle du drone
+      </Typography>
+      <Stack
+        spacing={2}
+        sx={{
+          alignItems: "center",
+        }}
+      >
+        <Box
           ref={baseRef}
           onPointerDown={handlePointerDown}
           role="group"
           aria-label="Joystick tactile. Utilisez les flèches du clavier pour piloter et Espace pour arrêter."
-          className="relative h-[160px] w-[160px] touch-none select-none rounded-full border border-line-strong bg-muted"
+          sx={{
+            position: "relative",
+            width: 160,
+            height: 160,
+            touchAction: "none",
+            userSelect: "none",
+            borderRadius: "50%",
+            border: "1px solid",
+            borderColor: "divider",
+            bgcolor: "action.hover",
+          }}
         >
-          {/* directional guides */}
-          <div className="absolute inset-0 flex items-center justify-center text-xs text-subtle">
-            <span className="absolute top-2">AVANT</span>
-            <span className="absolute bottom-2">ARRIÈRE</span>
-            <span className="absolute left-2">G</span>
-            <span className="absolute right-2">D</span>
-          </div>
-
-          <div
-            className={`absolute left-1/2 top-1/2 h-10 w-10 rounded-full border-2 shadow-lg ${
-              blockedForward
-                ? "border-red-400 bg-red-500/80"
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+              color: "text.secondary",
+              pointerEvents: "none",
+            }}
+          >
+            <Typography
+              variant="caption"
+              sx={{
+                position: "absolute",
+                top: 8,
+                left: "50%",
+                transform: "translateX(-50%)",
+              }}
+            >
+              AVANT
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                position: "absolute",
+                bottom: 8,
+                left: "50%",
+                transform: "translateX(-50%)",
+              }}
+            >
+              ARRIÈRE
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                position: "absolute",
+                left: 8,
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
+            >
+              G
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                position: "absolute",
+                right: 8,
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
+            >
+              D
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              width: 40,
+              height: 40,
+              borderRadius: "50%",
+              border: "2px solid",
+              borderColor: blockedForward ? "error.light" : "secondary.main",
+              bgcolor: blockedForward
+                ? "error.main"
                 : current.action !== "stop"
-                  ? "border-cyan-300 bg-cyan-500 text-white"
-                  : "border-cyan-600 bg-cyan-700 text-white"
-            }`}
-            style={{
+                  ? "primary.light"
+                  : "primary.main",
+              boxShadow: 2,
               transform: `translate(-50%, -50%) translate(${knob.x}px, ${knob.y}px)`,
               transition: isDragging ? "none" : "transform 150ms ease-out",
             }}
           />
-        </div>
-
-        <div className="mt-4 flex min-h-6 items-center gap-2 text-xs">
+        </Box>
+        <Box
+          sx={{
+            minHeight: 24,
+          }}
+        >
           {blockedForward ? (
-            <span className="flex items-center gap-1 font-semibold text-error-ink">
-              <TriangleAlert size={14} />
-              Obstacle à{" "}
-              {distanceObstacle != null
-                ? `${Math.round(distanceObstacle)} cm`
-                : "proximité"}
-            </span>
+            <Stack
+              direction="row"
+              spacing={0.5}
+              sx={{
+                alignItems: "center",
+                color: "error.main",
+              }}
+            >
+              <TriangleAlert size={16} />
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                }}
+              >
+                Obstacle à{" "}
+                {distanceObstacle != null
+                  ? `${Math.round(distanceObstacle)} cm`
+                  : "proximité"}
+              </Typography>
+            </Stack>
           ) : (
-            <span className="text-subtle">
+            <Typography
+              variant="body2"
+              sx={{
+                color: "text.secondary",
+              }}
+            >
               {LABELS[current.action]}
               {current.action !== "stop" ? ` · ${current.speed}%` : ""}
-            </span>
+            </Typography>
           )}
-        </div>
-      </div>
-
-      <button
+        </Box>
+      </Stack>
+      <Button
         onClick={stop}
-        className="mt-5 min-h-12 w-full rounded-xl bg-red-600 text-white text-sm font-semibold transition-all hover:bg-red-500 active:scale-95"
+        variant="contained"
+        color="error"
+        fullWidth
+        sx={{
+          mt: 3,
+        }}
       >
         STOP
-      </button>
-
-      <div className="mt-4 text-center text-sm text-subtle">
-        Glisser le joystick, ou clavier : ↑ ↓ ← → &nbsp;|&nbsp; Espace = STOP
-      </div>
-    </div>
+      </Button>
+      <Typography
+        variant="body2"
+        align="center"
+        sx={{
+          color: "text.secondary",
+          mt: 2,
+        }}
+      >
+        Glisser le joystick, ou clavier : ↑ ↓ ← → · Espace = STOP
+      </Typography>
+    </Paper>
   );
 }

@@ -1,4 +1,6 @@
-﻿import MainLayout from "../components/layout/MainLayout";
+﻿import { Box, Stack } from "@mui/material";
+import MainLayout from "../components/layout/MainLayout";
+import PageHeading from "../components/common/PageHeading";
 import ControlPanel from "../modules/control/ControlPanel";
 import VideoPanel from "../modules/video/VideoPanel";
 import ObstacleCard from "../modules/telemetry/ObstacleCard";
@@ -7,31 +9,43 @@ import BatteryCard from "../modules/telemetry/BatteryCard";
 export default function ControlePage() {
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <div>
-          <p className="mb-2 text-sm font-semibold text-accent-ink">
-            COMMANDES
-          </p>
-          <h2 className="text-3xl font-bold tracking-tight">
-            Pilotage terrestre
-          </h2>
-          <p className="mt-2 text-base text-subtle">
-            Gardez la caméra en vue et utilisez le joystick pour déplacer le
-            drone.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <Stack spacing={3}>
+        <PageHeading
+          eyebrow="Commandes"
+          title="Pilotage terrestre"
+          description="Gardez la caméra en vue et utilisez le joystick pour déplacer le drone."
+        />
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "minmax(0, 1fr)",
+              sm: "repeat(3, minmax(0, 1fr))",
+            },
+            gap: 2,
+          }}
+        >
           <BatteryCard />
           <SpeedCard />
           <ObstacleCard />
-        </div>
-        <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="h-[480px] min-w-0">
+        </Box>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "minmax(0, 1fr)",
+              xl: "minmax(0, 1fr) 360px",
+            },
+            alignItems: "start",
+            gap: 2.5,
+          }}
+        >
+          <Box sx={{ height: 480, minWidth: 0 }}>
             <VideoPanel />
-          </div>
+          </Box>
           <ControlPanel />
-        </div>
-      </div>
+        </Box>
+      </Stack>
     </MainLayout>
   );
 }

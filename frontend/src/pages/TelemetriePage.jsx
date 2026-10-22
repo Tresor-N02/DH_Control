@@ -1,13 +1,29 @@
 import { useCallback, useEffect, useState } from "react";
-import { RefreshCw, Loader2 } from "lucide-react";
-
+import { RefreshCw } from "lucide-react";
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  List,
+  ListItem,
+  ListItemText,
+  Stack,
+  Table,
+  TableContainer,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Typography,
+} from "@mui/material";
 import MainLayout from "../components/layout/MainLayout";
+import PageHeading from "../components/common/PageHeading";
 import Card from "../components/common/Card";
 import CardHeader from "../components/common/CardHeader";
 import CardBody from "../components/common/CardBody";
 import { useDrone } from "../context/useDrone";
 import * as api from "../services/api";
-
 function formatHeure(iso) {
   try {
     return new Date(iso).toLocaleTimeString("fr-FR");
@@ -15,14 +31,12 @@ function formatHeure(iso) {
     return iso;
   }
 }
-
 export default function TelemetriePage() {
   const { droneId } = useDrone();
   const [history, setHistory] = useState([]);
   const [journal, setJournal] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const load = useCallback(async () => {
     if (!droneId) {
       setLoading(false);
@@ -45,148 +59,175 @@ export default function TelemetriePage() {
       setLoading(false);
     }
   }, [droneId]);
-
   useEffect(() => {
     async function run() {
       await load();
     }
     run();
   }, [load]);
-
   return (
     <MainLayout>
-      <div className="flex flex-col gap-3 ">
-        <section className="shrink-0 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Historique de télémétrie</h2>
-          <button
-            onClick={load}
-            disabled={loading}
-            className="flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-sm transition hover:bg-muted-strong disabled:opacity-60"
-          >
-            {loading ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <RefreshCw size={14} />
-            )}
-            Actualiser
-          </button>
-        </section>
-
-        {error && <p className="shrink-0 text-sm text-error-ink">{error}</p>}
-
-        <section className=" ">
-          <div className="grid h-full grid-cols-1 gap-3 xl:grid-cols-3">
-            <div className="xl:col-span-2 ">
-              <Card className="h-full min-h-0 flex flex-col">
-                <CardHeader title={`Relevés (${history.length})`} />
-                <CardBody className="flex-1 min-h-0 overflow-auto p-0">
-                  <table className="w-full min-w-[640px] text-left text-sm">
-                    <thead className="sticky top-0 bg-panel text-subtle">
-                      <tr>
-                        <th scope="col" className="px-3 py-2 font-normal">
-                          Heure
-                        </th>
-                        <th scope="col" className="px-3 py-2 font-normal">
-                          Batterie
-                        </th>
-                        <th scope="col" className="px-3 py-2 font-normal">
-                          Altitude
-                        </th>
-                        <th scope="col" className="px-3 py-2 font-normal">
-                          Vitesse
-                        </th>
-                        <th scope="col" className="px-3 py-2 font-normal">
-                          GPS
-                        </th>
-                        <th scope="col" className="px-3 py-2 font-normal">
-                          Obstacle
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loading && (
-                        <tr>
-                          <td colSpan={6} className="p-4 text-subtle">
-                            Chargement des relevés…
-                          </td>
-                        </tr>
-                      )}
-                      {history.length === 0 && !loading && (
-                        <tr>
-                          <td
-                            colSpan={6}
-                            className="px-3 py-6 text-center text-subtle"
-                          >
-                            Aucun relevé pour l'instant.
-                          </td>
-                        </tr>
-                      )}
-                      {history.map((row) => (
-                        <tr
-                          key={row.id_telemetrie}
-                          className="border-t border-line"
-                        >
-                          <td className="px-3 py-2 text-secondary">
-                            {formatHeure(row.date_heure)}
-                          </td>
-                          <td className="px-3 py-2">
-                            {row.batterie.toFixed(0)}%
-                          </td>
-                          <td className="px-3 py-2">
-                            {row.altitude.toFixed(1)} m
-                          </td>
-                          <td className="px-3 py-2">
-                            {row.vitesse.toFixed(1)} km/h
-                          </td>
-                          <td className="px-3 py-2 text-subtle">
-                            {row.latitude != null
-                              ? `${row.latitude.toFixed(4)}, ${row.longitude.toFixed(4)}`
-                              : "--"}
-                          </td>
-                          <td
-                            className={
-                              row.obstacle_detecte
-                                ? "px-3 py-2 text-error-ink"
-                                : "px-3 py-2 text-subtle"
-                            }
-                          >
-                            {row.distance_obstacle != null
-                              ? `${row.distance_obstacle.toFixed(0)} cm`
-                              : "--"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </CardBody>
-              </Card>
-            </div>
-
-            <div className="">
-              <Card className="h-full min-h-0 flex flex-col">
-                <CardHeader title="Journal d'activité" />
-                <CardBody className="flex-1 min-h-0 overflow-y-auto">
-                  {journal.length === 0 && !loading && (
-                    <p className="text-sm text-subtle">
-                      Aucune activité récente.
-                    </p>
-                  )}
-                  <ul className="space-y-3">
-                    {journal.map((entry) => (
-                      <li key={entry.id_historique} className="text-sm">
-                        <p className="text-ink">{entry.action}</p>
-                        <p className="text-xs text-subtle">
-                          {formatHeure(entry.date_action)}
-                        </p>
-                      </li>
+      <Stack spacing={3}>
+        <PageHeading
+          title="Historique de télémétrie"
+          description="Consultez les derniers relevés et le journal des actions."
+          action={
+            <Button
+              variant="outlined"
+              onClick={load}
+              disabled={loading}
+              startIcon={
+                loading ? (
+                  <CircularProgress size={16} />
+                ) : (
+                  <RefreshCw size={18} />
+                )
+              }
+            >
+              Actualiser
+            </Button>
+          }
+        />
+        {error && <Alert severity="error">{error}</Alert>}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "minmax(0, 1fr)",
+              xl: "minmax(0, 2fr) minmax(0, 1fr)",
+            },
+            gap: 2.5,
+          }}
+        >
+          <Card>
+            <CardHeader title={`Relevés (${history.length})`} />
+            <TableContainer
+              sx={{
+                maxHeight: 640,
+              }}
+            >
+              <Table
+                stickyHeader
+                size="small"
+                aria-label="Historique de télémétrie"
+                sx={{
+                  minWidth: 640,
+                }}
+              >
+                <TableHead>
+                  <TableRow>
+                    {[
+                      "Heure",
+                      "Batterie",
+                      "Altitude",
+                      "Vitesse",
+                      "GPS",
+                      "Obstacle",
+                    ].map((label) => (
+                      <TableCell key={label} scope="col">
+                        {label}
+                      </TableCell>
                     ))}
-                  </ul>
-                </CardBody>
-              </Card>
-            </div>
-          </div>
-        </section>
-      </div>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {loading && (
+                    <TableRow>
+                      <TableCell colSpan={6}>
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          sx={{
+                            alignItems: "center",
+                          }}
+                        >
+                          <CircularProgress size={18} />
+                          <Typography variant="body2">
+                            Chargement des relevés…
+                          </Typography>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!history.length && !loading && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        align="center"
+                        sx={{
+                          py: 4,
+                        }}
+                      >
+                        Aucun relevé pour l’instant.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {history.map((row) => (
+                    <TableRow key={row.id_telemetrie} hover>
+                      <TableCell>{formatHeure(row.date_heure)}</TableCell>
+                      <TableCell>{row.batterie.toFixed(0)}%</TableCell>
+                      <TableCell>{row.altitude.toFixed(1)} m</TableCell>
+                      <TableCell>{row.vitesse.toFixed(1)} km/h</TableCell>
+                      <TableCell>
+                        {row.latitude != null && row.longitude != null
+                          ? `${row.latitude.toFixed(4)}, ${row.longitude.toFixed(4)}`
+                          : "--"}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          color: row.obstacle_detecte
+                            ? "error.main"
+                            : "text.secondary",
+                        }}
+                      >
+                        {row.distance_obstacle != null
+                          ? `${row.distance_obstacle.toFixed(0)} cm`
+                          : "--"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Card>
+          <Card>
+            <CardHeader title="Journal d’activité" />
+            <CardBody
+              sx={{
+                maxHeight: 640,
+                overflow: "auto",
+              }}
+            >
+              {!journal.length && !loading && (
+                <Typography
+                  sx={{
+                    color: "text.secondary",
+                  }}
+                >
+                  Aucune activité récente.
+                </Typography>
+              )}
+              <List disablePadding>
+                {journal.map((entry) => (
+                  <ListItem key={entry.id_historique} disableGutters divider>
+                    <ListItemText
+                      primary={entry.action}
+                      secondary={formatHeure(entry.date_action)}
+                      slotProps={{
+                        primary: {
+                          sx: {
+                            overflowWrap: "anywhere",
+                          },
+                        },
+                      }}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </CardBody>
+          </Card>
+        </Box>
+      </Stack>
     </MainLayout>
   );
 }

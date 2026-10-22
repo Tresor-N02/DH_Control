@@ -1,24 +1,61 @@
+import {
+  Paper,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from "@mui/material";
+import { Car, Plane } from "lucide-react";
 import { useDrone } from "../../context/useDrone";
 export default function FlightModeSelector() {
   const { flightMode, setFlightMode } = useDrone();
   return (
-    <section className="rounded-xl border border-line bg-panel p-4">
-      <h3 className="mb-3 text-sm font-semibold">Mode de déplacement</h3>
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          aria-pressed={flightMode === "TERRESTRE"}
-          onClick={() => setFlightMode("TERRESTRE")}
-          className="rounded-lg bg-cyan-700 text-white p-3 text-sm"
+    <Paper
+      variant="outlined"
+      sx={{
+        p: 2.5,
+      }}
+    >
+      <Typography
+        component="h3"
+        sx={{
+          fontWeight: 600,
+          mb: 2,
+        }}
+      >
+        Mode de déplacement
+      </Typography>
+      <ToggleButtonGroup
+        value={flightMode}
+        exclusive
+        onChange={(_, mode) => {
+          if (mode) setFlightMode(mode);
+        }}
+        color="primary"
+        fullWidth
+        aria-label="Mode de déplacement"
+      >
+        <ToggleButton
+          value="TERRESTRE"
+          sx={{
+            gap: 1,
+            textTransform: "none",
+          }}
         >
+          <Car size={18} />
           Terrestre
-        </button>
-        <button
+        </ToggleButton>
+        <ToggleButton
+          value="AERIEN"
           disabled
-          className="rounded-lg bg-muted p-3 text-sm text-subtle"
+          sx={{
+            gap: 1,
+            textTransform: "none",
+          }}
         >
+          <Plane size={18} />
           Aérien indisponible
-        </button>
-      </div>
-    </section>
+        </ToggleButton>
+      </ToggleButtonGroup>
+    </Paper>
   );
 }

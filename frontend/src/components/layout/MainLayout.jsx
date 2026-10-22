@@ -1,3 +1,16 @@
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  LinearProgress,
+  Link,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material";
+import { visuallyHidden } from "@mui/utils";
+import { OctagonX } from "lucide-react";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import { useDrone } from "../../context/useDrone";
@@ -17,29 +30,85 @@ export default function MainLayout({ children }) {
     emergencyStop,
   } = useDrone();
   return (
-    <div className="min-h-screen bg-app text-ink">
-      <a
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "background.default",
+        color: "text.primary",
+      }}
+    >
+      <Link
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:block focus:p-3"
+        sx={{
+          ...visuallyHidden,
+          "&:focus": {
+            position: "static",
+            width: "auto",
+            height: "auto",
+            clip: "auto",
+            overflow: "visible",
+            display: "block",
+            p: 2,
+          },
+        }}
       >
         Aller au contenu
-      </a>
+      </Link>
       <Navbar />
-      <div className="flex items-start">
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "flex-start",
+        }}
+      >
         <Sidebar />
-        <main
+        <Stack
+          component="main"
           id="main-content"
-          className="min-w-0 flex-1 space-y-6 p-4 pb-32 md:p-7 md:pb-32"
+          spacing={3}
+          sx={{
+            minWidth: 0,
+            flex: 1,
+            p: {
+              xs: 2,
+              md: 3.5,
+            },
+            pb: {
+              xs: 16,
+              md: 16,
+            },
+          }}
         >
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-5">
-            <div>
-              <p className="mb-1 text-xs font-medium text-subtle">
+          <Stack
+            direction="row"
+            sx={{
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 1.5,
+              borderBottom: "1px solid",
+              borderColor: "divider",
+              pb: 2.5,
+            }}
+          >
+            <Box>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "text.secondary",
+                }}
+              >
                 Drone sélectionné
-              </p>
-              <h2 className="text-xl font-semibold">
+              </Typography>
+              <Typography component="h2" variant="h6">
                 {droneName || "Poste de supervision"}
-              </h2>
-              <p className="text-sm text-subtle">
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "text.secondary",
+                }}
+              >
                 {flightMode === "TERRESTRE"
                   ? "Mode terrestre"
                   : "Mode aérien indisponible"}{" "}
@@ -51,83 +120,136 @@ export default function MainLayout({ children }) {
                 {telemetryAge == null
                   ? "En attente de données"
                   : `Dernières données : ${telemetryAge} s`}
-              </p>
-            </div>
-            <span
-              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium ${connected && !telemetryStale ? "border-line-strong bg-muted text-accent-ink" : "border-warning-line bg-warning-surface/40 text-warning-ink"}`}
+              </Typography>
+            </Box>
+            <Chip
+              variant="outlined"
+              color={connected && !telemetryStale ? "success" : "warning"}
+              label={
+                connected && !telemetryStale
+                  ? "Connecté"
+                  : "Connexion indisponible"
+              }
+            />
+          </Stack>
+          <Paper
+            square
+            elevation={3}
+            sx={{
+              position: "fixed",
+              left: {
+                xs: 0,
+                lg: 256,
+              },
+              right: 0,
+              bottom: 0,
+              zIndex: 1100,
+              borderTop: "1px solid",
+              borderColor: "divider",
+              px: {
+                xs: 2,
+                md: 3.5,
+              },
+              py: 1.5,
+            }}
+          >
+            <Stack
+              direction="row"
+              sx={{
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 2,
+              }}
             >
-              <span
-                aria-hidden="true"
-                className="h-2 w-2 rounded-full bg-current"
-              />
-              {connected && !telemetryStale
-                ? "Connecté"
-                : "Connexion indisponible"}
-            </span>
-          </div>
-          <div className="fixed inset-x-0 bottom-0 z-[1100] flex items-center justify-between gap-4 border-t border-line bg-panel px-4 py-3 shadow-lg lg:left-64 md:px-7">
-            <p className="hidden text-sm text-subtle sm:block">
-              Besoin d’arrêter le déplacement ?
-            </p>
-            <button
-              disabled={!droneId}
-              onClick={emergencyStop}
-              className="ml-auto min-h-12 rounded-xl bg-red-600 text-white px-6 py-3 font-semibold hover:bg-red-500 disabled:opacity-50"
-            >
-              Arrêt d’urgence
-            </button>
-          </div>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "text.secondary",
+                  display: {
+                    xs: "none",
+                    sm: "block",
+                  },
+                }}
+              >
+                Besoin d’arrêter le déplacement ?
+              </Typography>
+              <Button
+                disabled={!droneId}
+                onClick={emergencyStop}
+                variant="contained"
+                color="error"
+                startIcon={<OctagonX size={20} />}
+                sx={{
+                  ml: "auto",
+                  minHeight: 48,
+                  px: 3,
+                }}
+              >
+                Arrêt d’urgence
+              </Button>
+            </Stack>
+          </Paper>
           {simulated && (
-            <div
-              role="status"
-              className="rounded-xl border border-warning-line bg-warning-surface/50 p-3 text-sm text-warning-ink"
-            >
+            <Alert severity="info" role="status">
               Mode simulation — données fictives. Les commandes peuvent agir sur
               le simulateur.
-            </div>
+            </Alert>
           )}
           {droneId && (!connected || telemetryStale) && (
-            <div
-              role="status"
-              className="rounded-xl border border-warning-line bg-warning-surface/40 p-3 text-sm text-warning-ink"
-            >
+            <Alert severity="warning" role="status">
               {!connected
                 ? "Liaison perdue ou en cours de connexion."
                 : "Données périmées."}{" "}
               Les dernières valeurs ne confirment pas l’état actuel du drone.
-            </div>
+            </Alert>
           )}
           {commandFeedback && (
-            <p
+            <Alert
               role="status"
               aria-live="polite"
-              className={`rounded-lg border p-3 text-sm ${commandFeedback.error ? "border-error-line bg-error-surface/40 text-error-ink" : "border-line-strong bg-panel"}`}
+              severity={commandFeedback.error ? "error" : "info"}
             >
               {commandFeedback.message}
-            </p>
+            </Alert>
           )}
           {droneLoading ? (
-            <p role="status">Chargement du drone…</p>
+            <Box role="status">
+              <Typography
+                sx={{
+                  mb: 1,
+                }}
+              >
+                Chargement du drone…
+              </Typography>
+              <LinearProgress />
+            </Box>
           ) : droneError || !droneId ? (
-            <div className="rounded-xl border border-line-strong p-6">
-              <p>
+            <Alert severity={droneError ? "error" : "info"}>
+              <Typography>
                 {droneError ||
                   "Aucun drone configuré. Ajoutez un drone côté serveur pour commencer."}
-              </p>
-              <button
+              </Typography>
+              <Button
                 onClick={reloadDrones}
-                className="mt-3 rounded-lg bg-cyan-700 text-white px-4 py-2"
+                variant="outlined"
+                sx={{
+                  mt: 2,
+                }}
               >
                 Réessayer
-              </button>
-            </div>
+              </Button>
+            </Alert>
           ) : (
-            <div className={telemetryStale ? "telemetry-stale" : ""}>
+            <Box
+              sx={{
+                minWidth: 0,
+              }}
+            >
               {children}
-            </div>
+            </Box>
           )}
-        </main>
-      </div>
-    </div>
+        </Stack>
+      </Box>
+    </Box>
   );
 }

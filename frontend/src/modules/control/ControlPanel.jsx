@@ -1,19 +1,43 @@
-﻿import FlightModeSelector from "./FlightModeSelector";
+import {
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Stack,
+} from "@mui/material";
+import { ChevronDown } from "lucide-react";
+import FlightModeSelector from "./FlightModeSelector";
 import Joystick from "./Joystick";
 import ActionButtons from "./ActionButtons";
 export default function ControlPanel() {
   return (
-    <section aria-label="Commandes de déplacement" className="space-y-4">
+    <Stack
+      component="section"
+      aria-label="Commandes de déplacement"
+      spacing={2}
+    >
       <Joystick />
       <FlightModeSelector />
-      <details className="rounded-xl border border-line bg-panel p-4">
-        <summary className="cursor-pointer text-sm font-medium text-subtle">
+      <Accordion
+        disableGutters
+        elevation={0}
+        sx={{
+          border: "1px solid",
+          borderColor: "divider",
+          borderRadius: "12px !important",
+          "&:before": { display: "none" },
+        }}
+      >
+        <AccordionSummary
+          expandIcon={<ChevronDown size={20} />}
+          aria-controls="unavailable-controls"
+          id="unavailable-heading"
+        >
           Fonctions non disponibles
-        </summary>
-        <div className="mt-4">
+        </AccordionSummary>
+        <AccordionDetails id="unavailable-controls">
           <ActionButtons />
-        </div>
-      </details>
-    </section>
+        </AccordionDetails>
+      </Accordion>
+    </Stack>
   );
 }

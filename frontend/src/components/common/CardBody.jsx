@@ -1,3 +1,8 @@
-﻿export default function CardBody({ children, className = "" }) {
-  return <div className={`p-5 ${className}`}>{children}</div>;
+﻿import Box from "@mui/material/Box";
+export default function CardBody({ children, sx = [], ...props }) {
+  return (
+    <Box {...props} sx={[{ p: 2.5 }, ...(Array.isArray(sx) ? sx : [sx])]}>
+      {children}
+    </Box>
+  );
 }

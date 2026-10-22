@@ -1,4 +1,5 @@
 import { Plus, Minus, LocateFixed, Navigation } from "lucide-react";
+import { Box, Stack, IconButton, Tooltip } from "@mui/material";
 export default function MapToolbar({
   onZoomIn,
   onZoomOut,
@@ -8,7 +9,10 @@ export default function MapToolbar({
   canLocate,
 }) {
   return (
-    <div className="absolute right-3 top-3 z-[1000] flex flex-col gap-2">
+    <Stack
+      spacing={1}
+      sx={{ position: "absolute", right: 12, top: 12, zIndex: 1000 }}
+    >
       {[
         [Plus, "Zoom avant", onZoomIn],
         [Minus, "Zoom arrière", onZoomOut],
@@ -19,18 +23,36 @@ export default function MapToolbar({
           onToggleFollow,
         ],
       ].map(([Icon, label, action], i) => (
-        <button
-          key={label}
-          aria-label={label}
-          title={label}
-          aria-pressed={i === 3 ? following : undefined}
-          disabled={i >= 2 && !canLocate}
-          onClick={action}
-          className={`flex h-11 w-11 items-center justify-center rounded-lg border border-line-strong ${i === 3 && following ? "bg-cyan-700 text-white" : "bg-panel"} disabled:opacity-40`}
-        >
-          <Icon size={20} />
-        </button>
+        <Tooltip key={label} title={label} placement="left">
+          <Box component="span">
+            <IconButton
+              aria-label={label}
+              aria-pressed={i === 3 ? following : undefined}
+              disabled={i >= 2 && !canLocate}
+              onClick={action}
+              sx={{
+                width: 44,
+                height: 44,
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 2,
+                bgcolor:
+                  i === 3 && following ? "primary.main" : "background.paper",
+                color:
+                  i === 3 && following
+                    ? "primary.contrastText"
+                    : "text.primary",
+                "&:hover": {
+                  bgcolor:
+                    i === 3 && following ? "primary.dark" : "action.hover",
+                },
+              }}
+            >
+              <Icon size={20} />
+            </IconButton>
+          </Box>
+        </Tooltip>
       ))}
-    </div>
+    </Stack>
   );
 }

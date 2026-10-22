@@ -1,79 +1,43 @@
+﻿import { Box, Typography } from "@mui/material";
 export default function DetectionBox({
-
   left,
-
   top,
-
   width,
-
   height,
-
   label,
-
-  color="border-lime-400"
-
-}){
-
-  return(
-
-    <div
-
-      className={`
-
-        absolute
-
-        ${color}
-
-        border-2
-
-      `}
-
-      style={{
-
+  color = "#a3e635",
+}) {
+  return (
+    <Box
+      sx={{
+        position: "absolute",
         left,
-
         top,
-
         width,
-
-        height
-
+        height,
+        border: "2px solid",
+        borderColor: color,
+        pointerEvents: "none",
       }}
-
     >
-
-      <div
-
-        className="
-          absolute
-
-          -top-7
-
-          left-0
-
-          rounded
-
-          bg-lime-400
-
-          px-2
-
-          py-1
-
-          text-xs
-
-          font-bold
-
-          text-black
-        "
-
+      <Typography
+        variant="caption"
+        sx={{
+          position: "absolute",
+          bottom: "100%",
+          left: -2,
+          mb: 0.5,
+          borderRadius: 1,
+          bgcolor: color,
+          color: "#000",
+          px: 1,
+          py: 0.5,
+          fontWeight: 700,
+          whiteSpace: "nowrap",
+        }}
       >
-
         {label}
-
-      </div>
-
-    </div>
-
+      </Typography>
+    </Box>
   );
-
 }

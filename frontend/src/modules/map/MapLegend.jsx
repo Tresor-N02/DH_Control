@@ -1,81 +1,28 @@
-import {
-  MapPin,
-  Navigation,
-  ShieldAlert,
-} from "lucide-react";
-
+import { Paper, Stack, Typography } from "@mui/material";
+import { Navigation } from "lucide-react";
 export default function MapLegend() {
-
   return (
-
-    <div
-      className="
-        absolute
-        bottom-3
-        left-3
-        z-[1000]
-
-        rounded-lg
-        border
-        border-line-strong/70
-        bg-panel/90
-        backdrop-blur
-
-        px-3
-        py-2
-
-        text-[10px]
-        text-secondary
-
-        shadow-lg
-      "
+    <Paper
+      variant="outlined"
+      sx={{
+        position: "absolute",
+        left: 12,
+        bottom: 12,
+        zIndex: 1000,
+        px: 1.5,
+        py: 1,
+      }}
     >
-
-      <h4 className="mb-2 text-[11px] font-semibold">
-
-        Légende
-
-      </h4>
-
-      <div className="space-y-1">
-
-        <div className="flex items-center gap-2">
-
-          <Navigation
-            size={13}
-            className="text-accent-ink"
-          />
-
-          <span>Drone</span>
-
-        </div>
-
-        <div className="flex items-center gap-2">
-
-          <MapPin
-            size={13}
-            className="text-green-400"
-          />
-
-          <span>Position</span>
-
-        </div>
-
-        <div className="flex items-center gap-2">
-
-          <ShieldAlert
-            size={13}
-            className="text-error-ink"
-          />
-
-          <span>Alerte</span>
-
-        </div>
-
-      </div>
-
-    </div>
-
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          alignItems: "center",
+        }}
+      >
+        <Navigation size={18} />
+        <Typography variant="body2">Position du drone</Typography>
+      </Stack>
+    </Paper>
   );
-
 }

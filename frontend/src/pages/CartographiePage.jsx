@@ -1,23 +1,35 @@
+﻿import { Box, Stack } from "@mui/material";
 import MainLayout from "../components/layout/MainLayout";
+import PageHeading from "../components/common/PageHeading";
 import MapCard from "../modules/map/MapCard";
 import GPSCard from "../modules/telemetry/GPSCard";
 import AltitudeCard from "../modules/telemetry/AltitudeCard";
-
 export default function CartographiePage() {
   return (
     <MainLayout>
-      <div className="flex flex-col gap-3 ">
-        <section className="shrink-0">
-          <div className="grid grid-cols-2 gap-2 lg:w-1/2">
-            <GPSCard />
-            <AltitudeCard />
-          </div>
-        </section>
-
-        <section className="h-[60vh] min-h-80">
+      <Stack spacing={3}>
+        <PageHeading
+          title="Cartographie"
+          description="Localisez le drone et activez le suivi pour garder sa position en vue."
+        />
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "minmax(0, 1fr)",
+              sm: "repeat(2, minmax(0, 1fr))",
+            },
+            gap: 2,
+            width: { lg: "70%" },
+          }}
+        >
+          <GPSCard />
+          <AltitudeCard />
+        </Box>
+        <Box component="section" sx={{ height: "60vh", minHeight: 320 }}>
           <MapCard />
-        </section>
-      </div>
+        </Box>
+      </Stack>
     </MainLayout>
   );
 }

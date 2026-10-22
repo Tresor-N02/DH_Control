@@ -1,12 +1,14 @@
+import PageLoading from "./components/common/PageLoading";
 import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
+import { lazy, Suspense } from "react";
 
-import Dashboard from "./pages/Dashboard";
-import LoginPage from "./pages/LoginPage";
-import CartographiePage from "./pages/CartographiePage";
-import VideoPage from "./pages/VideoPage";
-import TelemetriePage from "./pages/TelemetriePage";
-import ControlePage from "./pages/ControlePage";
-import MissionPage from "./pages/MissionPage";
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const CartographiePage = lazy(() => import("./pages/CartographiePage"));
+const VideoPage = lazy(() => import("./pages/VideoPage"));
+const TelemetriePage = lazy(() => import("./pages/TelemetriePage"));
+const ControlePage = lazy(() => import("./pages/ControlePage"));
+const MissionPage = lazy(() => import("./pages/MissionPage"));
 import { useAuth } from "./context/useAuth";
 
 function ProtectedLayout() {
@@ -14,11 +16,7 @@ function ProtectedLayout() {
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-app text-subtle">
-        Chargement...
-      </div>
-    );
+    return <PageLoading />;
   }
   if (!token) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
@@ -28,17 +26,19 @@ function ProtectedLayout() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
+    <Suspense fallback={<PageLoading>Chargement de la page…</PageLoading>}>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
 
-      <Route element={<ProtectedLayout />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/cartographie" element={<CartographiePage />} />
-        <Route path="/video" element={<VideoPage />} />
-        <Route path="/telemetrie" element={<TelemetriePage />} />
-        <Route path="/controle" element={<ControlePage />} />
-        <Route path="/mission" element={<MissionPage />} />
-      </Route>
-    </Routes>
+        <Route element={<ProtectedLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/cartographie" element={<CartographiePage />} />
+          <Route path="/video" element={<VideoPage />} />
+          <Route path="/telemetrie" element={<TelemetriePage />} />
+          <Route path="/controle" element={<ControlePage />} />
+          <Route path="/mission" element={<MissionPage />} />
+        </Route>
+      </Routes>
+    </Suspense>
   );
 }

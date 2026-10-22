@@ -1,3 +1,4 @@
+import { Box, Stack, IconButton, Tooltip } from "@mui/material";
 import { Camera, Scan, Maximize, Minimize, Crosshair } from "lucide-react";
 
 function downloadSnapshot(videoFrame) {
@@ -12,21 +13,30 @@ function downloadSnapshot(videoFrame) {
 
 function ToolbarButton({ icon: Icon, label, onClick, disabled, active }) {
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      title={label}
-      aria-label={label}
-      className={`flex h-11 w-11 items-center justify-center rounded-lg transition ${
-        disabled
-          ? "cursor-not-allowed bg-slate-900/50 text-slate-600"
-          : active
-            ? "bg-cyan-600"
-            : "bg-slate-900/80 hover:bg-cyan-600"
-      }`}
-    >
-      <Icon size={18} />
-    </button>
+    <Tooltip title={label} placement="left">
+      <Box component="span">
+        <IconButton
+          onClick={onClick}
+          disabled={disabled}
+          aria-label={label}
+          aria-pressed={active === undefined ? undefined : active}
+          sx={{
+            width: 44,
+            height: 44,
+            borderRadius: 2,
+            color: "#ffffff",
+            bgcolor: active ? "#0e7490" : "rgba(15,23,42,0.85)",
+            "&:hover": { bgcolor: "#0e7490" },
+            "&.Mui-disabled": {
+              color: "#64748b",
+              bgcolor: "rgba(15,23,42,0.5)",
+            },
+          }}
+        >
+          <Icon size={18} />
+        </IconButton>
+      </Box>
+    </Tooltip>
   );
 }
 
@@ -40,7 +50,10 @@ export default function VideoToolbar({
   onToggleFullscreen,
 }) {
   return (
-    <div className="absolute right-3 top-3 z-20 flex flex-col gap-2">
+    <Stack
+      spacing={1}
+      sx={{ position: "absolute", right: 12, top: 12, zIndex: 20 }}
+    >
       <ToolbarButton
         icon={Camera}
         label="Capturer une image"
@@ -67,6 +80,6 @@ export default function VideoToolbar({
         onClick={onToggleReticle}
         active={showReticle}
       />
-    </div>
+    </Stack>
   );
 }

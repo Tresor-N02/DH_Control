@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
 import App from "./App";
+import UiThemeProvider from "./context/UiThemeProvider";
 
 import { AuthProvider } from "./context/AuthContext";
 import { DroneProvider } from "./context/DroneContext";
@@ -15,12 +16,14 @@ import "leaflet-defaulticon-compatibility";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <DroneProvider>
-          <App />
-        </DroneProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  </React.StrictMode>
+    <UiThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <DroneProvider>
+            <App />
+          </DroneProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </UiThemeProvider>
+  </React.StrictMode>,
 );

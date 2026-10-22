@@ -1,6 +1,9 @@
 # DH_MIL — Frontend
 
-Interface React 19, Vite et Tailwind CSS pour superviser le drone hybride.
+Interface React 19, Vite et Material UI (MUI) pour superviser le drone hybride.
+Tous les composants visuels et les mises en page utilisent MUI et sa propriété
+`sx`. Leaflet assure le rendu cartographique et le joystick conserve sa logique
+de commande au pointeur et au clavier. Tailwind a été retiré des dépendances.
 Les données viennent du backend FastAPI ; celui-ci peut basculer en simulation.
 
 ## Démarrage
@@ -25,13 +28,20 @@ Le serveur de déploiement doit rediriger les routes de l’application vers
 
 ## Parcours et états
 
+Les composants d’interface utilisent MUI : navigation, tiroir mobile, cartes,
+formulaires, boutons, alertes, tableau de télémétrie et commandes. Le thème
+commun se configure dans `src/context/UiThemeProvider.jsx` et suit le choix
+clair/sombre existant. Les couleurs, la typographie et les variantes se
+configurent dans ce thème commun.
+Les pages sont chargées à la demande pour limiter le JavaScript initial.
+
 Le bouton soleil/lune, présent dans l’en-tête et sur la page de connexion,
 permet de choisir le mode clair ou sombre. Le choix est mémorisé dans le
 navigateur et synchronisé entre les onglets. Sans choix explicite, le thème
 suit les préférences du système. Les couleurs partagées se trouvent dans
-`src/index.css` ; les images caméra conservent leurs couleurs d’origine.
+`src/context/UiThemeProvider.jsx` ; les images caméra conservent leurs couleurs d’origine.
 
-- Navigation latérale sur ordinateur, menu déroulant sur mobile.
+- Navigation latérale sur ordinateur, tiroir MUI sur mobile.
 - Tableau de bord : batterie, vitesse et obstacle en premier, puis caméra,
   carte et informations complémentaires. Le bouton « Ouvrir le pilotage »
   mène aux commandes.
@@ -44,7 +54,7 @@ suit les préférences du système. Les couleurs partagées se trouvent dans
 - Mode simulation indiqué par un bandeau permanent. La caméra indique
   séparément si son image est simulée.
 - Télémétrie et vidéo périmées après plus de cinq secondes sans mise à jour.
-  Les anciennes valeurs sont atténuées, les déplacements sont bloqués et
+  Les anciennes mesures ont une bordure en pointillés, les déplacements sont bloqués et
   le marqueur GPS n’est plus présenté comme une position actuelle.
 - Batterie et signal affichés comme indisponibles sur le matériel actuel :
   le firmware ne transmet pas ces mesures. Le simulateur peut les fournir.

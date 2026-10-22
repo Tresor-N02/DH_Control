@@ -1,57 +1,38 @@
+import { LinearProgress, Stack, Typography } from "@mui/material";
 import { BatteryFull, BatteryMedium, BatteryLow } from "lucide-react";
-
-import Card from "../../components/common/Card";
-import CardHeader from "../../components/common/CardHeader";
-import CardBody from "../../components/common/CardBody";
-
+import TelemetryCard, {
+  MetricValue,
+} from "../../components/common/TelemetryCard";
 import { useDrone } from "../../context/useDrone";
-
 export default function BatteryCard() {
   const { battery, simulated, lastTelemetryAt } = useDrone();
-
+  const available = simulated && lastTelemetryAt;
+  const level = Math.max(0, Math.min(100, battery));
   const Icon =
-    battery > 60 ? BatteryFull : battery > 20 ? BatteryMedium : BatteryLow;
-
+    level > 60 ? BatteryFull : level > 20 ? BatteryMedium : BatteryLow;
   return (
-    <Card className="telemetry-value">
-      <CardHeader title="Batterie" icon={Icon} />
-
-      <CardBody>
-        <p className="text-4xl font-semibold tracking-tight">
-          {simulated && lastTelemetryAt ? `${battery.toFixed(0)} %` : "—"}
-        </p>
-
-        <p className="mt-2 text-xs text-subtle">
-          {simulated ? "Valeur simulée" : "Mesure matérielle indisponible"}
-        </p>
-        <div
-          className="
-            mt-2
-            h-1
-            rounded-full
-            bg-muted
-          "
+    <TelemetryCard title="Batterie" icon={Icon}>
+      <Stack spacing={1}>
+        <MetricValue value={available ? `${level.toFixed(0)} %` : "—"} />
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.secondary",
+          }}
         >
-          <div
-            className={`
-              h-1
-              rounded-full
-              transition-all
-              duration-500
-              ${
-                battery > 60
-                  ? "bg-green-500"
-                  : battery > 20
-                    ? "bg-yellow-500"
-                    : "bg-red-500 text-white"
-              }
-            `}
-            style={{
-              width: `${simulated && lastTelemetryAt ? battery : 0}%`,
-            }}
-          />
-        </div>
-      </CardBody>
-    </Card>
+          {simulated ? "Valeur simulée" : "Mesure matérielle indisponible"}
+        </Typography>
+        <LinearProgress
+          aria-label="Niveau de batterie"
+          variant="determinate"
+          value={available ? level : 0}
+          color={level > 60 ? "success" : level > 20 ? "warning" : "error"}
+          sx={{
+            height: 5,
+            borderRadius: 1,
+          }}
+        />
+      </Stack>
+    </TelemetryCard>
   );
 }

@@ -1,21 +1,26 @@
+import { Stack, Typography } from "@mui/material";
 import { Wifi } from "lucide-react";
-import Card from "../../components/common/Card";
-import CardHeader from "../../components/common/CardHeader";
-import CardBody from "../../components/common/CardBody";
+import TelemetryCard, {
+  MetricValue,
+} from "../../components/common/TelemetryCard";
 import { useDrone } from "../../context/useDrone";
 export default function SignalCard() {
   const { signal, simulated, lastTelemetryAt } = useDrone();
   return (
-    <Card className="telemetry-value">
-      <CardHeader title="Signal" icon={Wifi} />
-      <CardBody>
-        <p className="text-2xl font-bold">
-          {simulated && lastTelemetryAt ? `${signal} %` : "—"}
-        </p>
-        <p className="mt-2 text-xs text-subtle">
+    <TelemetryCard title="Signal" icon={Wifi}>
+      <Stack spacing={1}>
+        <MetricValue
+          value={simulated && lastTelemetryAt ? `${signal} %` : "—"}
+        />
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.secondary",
+          }}
+        >
           {simulated ? "Valeur simulée" : "Mesure matérielle indisponible"}
-        </p>
-      </CardBody>
-    </Card>
+        </Typography>
+      </Stack>
+    </TelemetryCard>
   );
 }

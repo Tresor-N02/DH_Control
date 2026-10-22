@@ -1,3 +1,4 @@
+import { Box, Paper, Typography } from "@mui/material";
 import {
   MapContainer,
   TileLayer,
@@ -20,10 +21,14 @@ const icon = (heading) =>
 function Controls({ latitude, longitude, valid }) {
   const map = useMap();
   const [following, setFollowing] = useState(true);
-  useMapEvents({ dragstart: () => setFollowing(false) });
+  useMapEvents({
+    dragstart: () => setFollowing(false),
+  });
   useEffect(() => {
     if (following && valid)
-      map.panTo([latitude, longitude], { animate: false });
+      map.panTo([latitude, longitude], {
+        animate: false,
+      });
   }, [map, latitude, longitude, following, valid]);
   useEffect(() => {
     const observer = new ResizeObserver(() => map.invalidateSize());
@@ -32,9 +37,21 @@ function Controls({ latitude, longitude, valid }) {
   }, [map]);
   return (
     <MapToolbar
-      onZoomIn={() => map.zoomIn(1, { animate: false })}
-      onZoomOut={() => map.zoomOut(1, { animate: false })}
-      onLocate={() => map.panTo([latitude, longitude], { animate: false })}
+      onZoomIn={() =>
+        map.zoomIn(1, {
+          animate: false,
+        })
+      }
+      onZoomOut={() =>
+        map.zoomOut(1, {
+          animate: false,
+        })
+      }
+      onLocate={() =>
+        map.panTo([latitude, longitude], {
+          animate: false,
+        })
+      }
       onToggleFollow={() => setFollowing(!following)}
       following={following}
       canLocate={valid}
@@ -45,7 +62,14 @@ export default function LeafletMap() {
   const { latitude, longitude, heading, gpsFix, telemetryStale } = useDrone();
   const valid = gpsFix && !telemetryStale;
   return (
-    <div className="relative h-full min-h-80 overflow-hidden rounded-xl">
+    <Box
+      sx={{
+        position: "relative",
+        height: "100%",
+        minHeight: 320,
+        overflow: "hidden",
+      }}
+    >
       <MapContainer
         center={[latitude, longitude]}
         zoom={17}
@@ -53,7 +77,11 @@ export default function LeafletMap() {
         zoomAnimation={false}
         fadeAnimation={false}
         markerZoomAnimation={false}
-        style={{ width: "100%", height: "100%", minHeight: "320px" }}
+        style={{
+          width: "100%",
+          height: "100%",
+          minHeight: "320px",
+        }}
       >
         <TileLayer
           attribution="&copy; OpenStreetMap"
@@ -63,7 +91,9 @@ export default function LeafletMap() {
         {valid && (
           <Marker position={[latitude, longitude]} icon={icon(heading)}>
             <Popup>
-              Drone · {latitude.toFixed(5)}, {longitude.toFixed(5)}
+              <Typography variant="body2">
+                Drone · {latitude.toFixed(5)}, {longitude.toFixed(5)}
+              </Typography>
               <br />
               Cap : {Math.round(heading)}°
             </Popup>
@@ -71,10 +101,27 @@ export default function LeafletMap() {
         )}
       </MapContainer>
       {!valid && (
-        <p className="absolute bottom-3 left-3 right-16 z-[1000] rounded-lg bg-panel/95 p-3 text-sm text-warning-ink">
-          Position actuelle indisponible. Aucun emplacement de drone confirmé.
-        </p>
+        <Paper
+          variant="outlined"
+          sx={{
+            position: "absolute",
+            bottom: 12,
+            left: 12,
+            right: 64,
+            zIndex: 1000,
+            p: 1.5,
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              color: "warning.main",
+            }}
+          >
+            Position actuelle indisponible. Aucun emplacement de drone confirmé.
+          </Typography>
+        </Paper>
       )}
-    </div>
+    </Box>
   );
 }

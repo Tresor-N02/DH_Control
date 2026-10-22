@@ -1,4 +1,4 @@
-﻿import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Map,
@@ -7,6 +7,14 @@ import {
   Gamepad2,
   ScrollText,
 } from "lucide-react";
+import {
+  Box,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Typography,
+} from "@mui/material";
 const menus = [
   ["Tableau de bord", "État général du drone", LayoutDashboard, "/"],
   ["Contrôle", "Déplacer le drone", Gamepad2, "/controle"],
@@ -16,44 +24,93 @@ const menus = [
   ["Missions", "Organiser les opérations", ScrollText, "/mission"],
 ];
 export default function Sidebar({ mobile = false, onNavigate }) {
+  const { pathname } = useLocation();
   return (
-    <aside
-      className={
-        mobile
-          ? "border-b border-line bg-panel p-3 lg:hidden"
-          : "sticky top-0 hidden min-h-[calc(100vh-80px)] w-64 shrink-0 border-r border-line bg-panel p-4 lg:block"
-      }
+    <Box
+      component="aside"
+      sx={{
+        display: mobile
+          ? "block"
+          : {
+              xs: "none",
+              lg: "block",
+            },
+        position: mobile ? "static" : "sticky",
+        top: 0,
+        minHeight: mobile ? undefined : "calc(100vh - 80px)",
+        width: mobile ? "100%" : 256,
+        flexShrink: 0,
+        borderRight: mobile ? 0 : "1px solid",
+        borderColor: "divider",
+        bgcolor: "background.paper",
+        p: 2,
+      }}
     >
-      <p className="mb-4 px-3 pt-2 text-xs font-semibold uppercase tracking-wider text-subtle">
-        Espace de travail
-      </p>
-      <nav
-        aria-label="Navigation principale"
-        className={
-          mobile ? "grid grid-cols-1 gap-2 sm:grid-cols-2" : "space-y-2"
-        }
+      <Typography
+        variant="overline"
+        sx={{
+          color: "text.secondary",
+          display: "block",
+          px: 1.5,
+          mb: 1.5,
+        }}
       >
+        Espace de travail
+      </Typography>
+      <List component="nav" aria-label="Navigation principale" disablePadding>
         {menus.map(([title, description, Icon, path]) => (
-          <NavLink
+          <ListItemButton
             key={path}
+            component={NavLink}
             to={path}
             end={path === "/"}
+            selected={pathname === path}
             onClick={onNavigate}
             aria-label={title}
-            className={({ isActive }) =>
-              `group flex min-h-16 items-center gap-3 rounded-xl border px-3 py-3 transition-colors ${isActive ? "border-cyan-700 bg-cyan-700 text-white shadow-sm" : "border-transparent text-secondary hover:bg-muted"}`
-            }
+            sx={{
+              minHeight: 72,
+              mb: 1,
+              "&.Mui-selected": {
+                bgcolor: "primary.main",
+                color: "primary.contrastText",
+                "&:hover": {
+                  bgcolor: "primary.dark",
+                },
+                "& .MuiListItemIcon-root, & .MuiListItemText-secondary": {
+                  color: "inherit",
+                },
+              },
+            }}
           >
-            <Icon size={22} className="shrink-0" />
-            <span>
-              <span className="block text-base font-semibold">{title}</span>
-              <span className="mt-0.5 block text-xs opacity-90">
-                {description}
-              </span>
-            </span>
-          </NavLink>
+            <ListItemIcon
+              sx={{
+                minWidth: 36,
+                color: "inherit",
+              }}
+            >
+              <Icon size={22} />
+            </ListItemIcon>
+            <ListItemText
+              primary={title}
+              secondary={description}
+              slotProps={{
+                primary: {
+                  sx: {
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                  },
+                },
+                secondary: {
+                  sx: {
+                    fontSize: "0.875rem",
+                    mt: 0.25,
+                  },
+                },
+              }}
+            />
+          </ListItemButton>
         ))}
-      </nav>
-    </aside>
+      </List>
+    </Box>
   );
 }

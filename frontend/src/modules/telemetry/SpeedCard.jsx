@@ -1,59 +1,57 @@
+import { LinearProgress, Stack, Typography } from "@mui/material";
 import { Gauge } from "lucide-react";
-
-import Card from "../../components/common/Card";
-import CardHeader from "../../components/common/CardHeader";
-import CardBody from "../../components/common/CardBody";
-
+import TelemetryCard, {
+  MetricValue,
+} from "../../components/common/TelemetryCard";
 import { useDrone } from "../../context/useDrone";
-
 export default function SpeedCard() {
   const { speed, lastTelemetryAt } = useDrone();
-
-  const currentSpeed = Math.abs(speed);
-
-  let color = "bg-green-500";
-  let status = "Arrêt";
-
-  if (currentSpeed > 0) {
-    status = "Lent";
-  }
-
-  if (currentSpeed >= 10) {
-    color = "bg-yellow-500";
-    status = "Croisière";
-  }
-
-  if (currentSpeed >= 20) {
-    color = "bg-red-500 text-white";
-    status = "Rapide";
-  }
-
+  const value = Math.abs(speed);
+  const status = !lastTelemetryAt
+    ? "En attente"
+    : value >= 20
+      ? "Rapide"
+      : value >= 10
+        ? "Croisière"
+        : value > 0
+          ? "Lent"
+          : "Arrêt";
   return (
-    <Card className="telemetry-value">
-      <CardHeader title="Vitesse" icon={Gauge} />
-
-      <CardBody>
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <p className="text-4xl font-semibold tracking-tight">
-            {lastTelemetryAt ? currentSpeed.toFixed(1) : "—"}
-
-            <span className="ml-2 text-sm text-subtle">km/h</span>
-          </p>
-
-          <span className="text-xs text-accent-ink font-medium">
-            {lastTelemetryAt ? status : "En attente"}
-          </span>
-        </div>
-
-        <div className="mt-2 h-1 rounded-full bg-muted">
-          <div
-            className={`${color} h-1 rounded-full transition-all duration-300`}
-            style={{
-              width: `${Math.min(currentSpeed * 5, 100)}%`,
-            }}
+    <TelemetryCard title="Vitesse" icon={Gauge}>
+      <Stack spacing={1}>
+        <Stack
+          direction="row"
+          sx={{
+            flexWrap: "wrap",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            gap: 1,
+          }}
+        >
+          <MetricValue
+            value={lastTelemetryAt ? value.toFixed(1) : "—"}
+            unit="km/h"
           />
-        </div>
-      </CardBody>
-    </Card>
+          <Typography
+            variant="body2"
+            sx={{
+              color: "secondary.main",
+            }}
+          >
+            {status}
+          </Typography>
+        </Stack>
+        <LinearProgress
+          aria-label="Vitesse relative"
+          variant="determinate"
+          value={Math.min(value * 5, 100)}
+          color={value >= 20 ? "error" : value >= 10 ? "warning" : "success"}
+          sx={{
+            height: 5,
+            borderRadius: 1,
+          }}
+        />
+      </Stack>
+    </TelemetryCard>
   );
 }
