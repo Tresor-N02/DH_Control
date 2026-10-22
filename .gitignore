@@ -1,0 +1,3 @@
+backend/venv/
+backend/op_control.db
+backend/yolov8n.pt
