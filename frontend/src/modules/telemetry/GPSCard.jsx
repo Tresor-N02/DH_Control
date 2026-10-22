@@ -14,7 +14,7 @@ export default function GPSCard() {
           {valid ? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}` : "—"}
         </p>
         <p
-          className={`mt-2 text-xs ${valid ? "text-cyan-300" : "text-amber-300"}`}
+          className={`mt-2 text-xs ${valid ? "text-accent-ink" : "text-warning-ink"}`}
         >
           {valid ? "Position acquise" : "Position indisponible"}
         </p>

@@ -222,8 +222,8 @@ export default function Joystick() {
   const blockedForward = obstacleDetected && current.action === "avancer";
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-3">
-      <h3 className="mb-2 text-sm font-semibold">Contrôle du drone</h3>
+    <div className="rounded-xl border border-line bg-panel p-5">
+      <h3 className="mb-5 text-lg font-semibold">Contrôle du drone</h3>
 
       <div className="flex flex-col items-center">
         <div
@@ -231,10 +231,10 @@ export default function Joystick() {
           onPointerDown={handlePointerDown}
           role="group"
           aria-label="Joystick tactile. Utilisez les flèches du clavier pour piloter et Espace pour arrêter."
-          className="relative h-[120px] w-[120px] touch-none select-none rounded-full border border-slate-700 bg-slate-800"
+          className="relative h-[160px] w-[160px] touch-none select-none rounded-full border border-line-strong bg-muted"
         >
           {/* directional guides */}
-          <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-500">
+          <div className="absolute inset-0 flex items-center justify-center text-xs text-subtle">
             <span className="absolute top-2">AVANT</span>
             <span className="absolute bottom-2">ARRIÈRE</span>
             <span className="absolute left-2">G</span>
@@ -246,8 +246,8 @@ export default function Joystick() {
               blockedForward
                 ? "border-red-400 bg-red-500/80"
                 : current.action !== "stop"
-                  ? "border-cyan-300 bg-cyan-500"
-                  : "border-cyan-600 bg-cyan-700"
+                  ? "border-cyan-300 bg-cyan-500 text-white"
+                  : "border-cyan-600 bg-cyan-700 text-white"
             }`}
             style={{
               transform: `translate(-50%, -50%) translate(${knob.x}px, ${knob.y}px)`,
@@ -256,9 +256,9 @@ export default function Joystick() {
           />
         </div>
 
-        <div className="mt-2 flex h-4 items-center gap-2 text-xs">
+        <div className="mt-4 flex min-h-6 items-center gap-2 text-xs">
           {blockedForward ? (
-            <span className="flex items-center gap-1 font-semibold text-red-400">
+            <span className="flex items-center gap-1 font-semibold text-error-ink">
               <TriangleAlert size={14} />
               Obstacle à{" "}
               {distanceObstacle != null
@@ -266,7 +266,7 @@ export default function Joystick() {
                 : "proximité"}
             </span>
           ) : (
-            <span className="text-slate-400">
+            <span className="text-subtle">
               {LABELS[current.action]}
               {current.action !== "stop" ? ` · ${current.speed}%` : ""}
             </span>
@@ -276,12 +276,12 @@ export default function Joystick() {
 
       <button
         onClick={stop}
-        className="mt-2 h-9 w-full rounded-xl bg-red-600 text-sm font-semibold transition-all hover:bg-red-500 active:scale-95"
+        className="mt-5 min-h-12 w-full rounded-xl bg-red-600 text-white text-sm font-semibold transition-all hover:bg-red-500 active:scale-95"
       >
         STOP
       </button>
 
-      <div className="mt-2 text-center text-xs text-slate-400">
+      <div className="mt-4 text-center text-sm text-subtle">
         Glisser le joystick, ou clavier : ↑ ↓ ← → &nbsp;|&nbsp; Espace = STOP
       </div>
     </div>

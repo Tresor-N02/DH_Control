@@ -18,11 +18,11 @@ export default function AltitudeCard() {
       />
 
       <CardBody>
-        <h1 className="text-2xl font-bold">
+        <p className="text-4xl font-semibold tracking-tight">
           {lastTelemetryAt ? altitude.toFixed(1) : "—"}
 
-          <span className="ml-2 text-base text-slate-400">m</span>
-        </h1>
+          <span className="ml-2 text-base text-subtle">m</span>
+        </p>
       </CardBody>
     </Card>
   );

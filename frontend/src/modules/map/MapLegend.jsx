@@ -17,15 +17,15 @@ export default function MapLegend() {
 
         rounded-lg
         border
-        border-slate-700/70
-        bg-slate-900/90
+        border-line-strong/70
+        bg-panel/90
         backdrop-blur
 
         px-3
         py-2
 
         text-[10px]
-        text-slate-300
+        text-secondary
 
         shadow-lg
       "
@@ -43,7 +43,7 @@ export default function MapLegend() {
 
           <Navigation
             size={13}
-            className="text-cyan-400"
+            className="text-accent-ink"
           />
 
           <span>Drone</span>
@@ -65,7 +65,7 @@ export default function MapLegend() {
 
           <ShieldAlert
             size={13}
-            className="text-red-400"
+            className="text-error-ink"
           />
 
           <span>Alerte</span>

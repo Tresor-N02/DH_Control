@@ -25,10 +25,21 @@ Le serveur de déploiement doit rediriger les routes de l’application vers
 
 ## Parcours et états
 
+Le bouton soleil/lune, présent dans l’en-tête et sur la page de connexion,
+permet de choisir le mode clair ou sombre. Le choix est mémorisé dans le
+navigateur et synchronisé entre les onglets. Sans choix explicite, le thème
+suit les préférences du système. Les couleurs partagées se trouvent dans
+`src/index.css` ; les images caméra conservent leurs couleurs d’origine.
+
 - Navigation latérale sur ordinateur, menu déroulant sur mobile.
-- Tableau de bord : batterie, vitesse et obstacle en premier, puis GPS,
-  altitude, signal, carte, vidéo et commandes.
-- Contrôle : caméra et indicateurs à proximité du joystick.
+- Tableau de bord : batterie, vitesse et obstacle en premier, puis caméra,
+  carte et informations complémentaires. Le bouton « Ouvrir le pilotage »
+  mène aux commandes.
+- Contrôle : caméra et joystick côte à côte sur grand écran ; fonctions
+  indisponibles dans un panneau repliable.
+- Titres de cartes plus grands, chiffres principaux agrandis et navigation
+  accompagnée d’une description. Les données anciennes restent lisibles,
+  avec une bordure en pointillés et un message explicite.
 - Arrêt d’urgence accessible sur toutes les pages authentifiées.
 - Mode simulation indiqué par un bandeau permanent. La caméra indique
   séparément si son image est simulée.

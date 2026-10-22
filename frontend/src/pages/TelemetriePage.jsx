@@ -61,7 +61,7 @@ export default function TelemetriePage() {
           <button
             onClick={load}
             disabled={loading}
-            className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-sm transition hover:bg-slate-700 disabled:opacity-60"
+            className="flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-sm transition hover:bg-muted-strong disabled:opacity-60"
           >
             {loading ? (
               <Loader2 size={14} className="animate-spin" />
@@ -72,7 +72,7 @@ export default function TelemetriePage() {
           </button>
         </section>
 
-        {error && <p className="shrink-0 text-sm text-red-400">{error}</p>}
+        {error && <p className="shrink-0 text-sm text-error-ink">{error}</p>}
 
         <section className=" ">
           <div className="grid h-full grid-cols-1 gap-3 xl:grid-cols-3">
@@ -81,7 +81,7 @@ export default function TelemetriePage() {
                 <CardHeader title={`Relevés (${history.length})`} />
                 <CardBody className="flex-1 min-h-0 overflow-auto p-0">
                   <table className="w-full min-w-[640px] text-left text-sm">
-                    <thead className="sticky top-0 bg-slate-900 text-slate-400">
+                    <thead className="sticky top-0 bg-panel text-subtle">
                       <tr>
                         <th scope="col" className="px-3 py-2 font-normal">
                           Heure
@@ -106,7 +106,7 @@ export default function TelemetriePage() {
                     <tbody>
                       {loading && (
                         <tr>
-                          <td colSpan={6} className="p-4 text-slate-400">
+                          <td colSpan={6} className="p-4 text-subtle">
                             Chargement des relevés…
                           </td>
                         </tr>
@@ -115,7 +115,7 @@ export default function TelemetriePage() {
                         <tr>
                           <td
                             colSpan={6}
-                            className="px-3 py-6 text-center text-slate-500"
+                            className="px-3 py-6 text-center text-subtle"
                           >
                             Aucun relevé pour l'instant.
                           </td>
@@ -124,9 +124,9 @@ export default function TelemetriePage() {
                       {history.map((row) => (
                         <tr
                           key={row.id_telemetrie}
-                          className="border-t border-slate-800"
+                          className="border-t border-line"
                         >
-                          <td className="px-3 py-2 text-slate-300">
+                          <td className="px-3 py-2 text-secondary">
                             {formatHeure(row.date_heure)}
                           </td>
                           <td className="px-3 py-2">
@@ -138,7 +138,7 @@ export default function TelemetriePage() {
                           <td className="px-3 py-2">
                             {row.vitesse.toFixed(1)} km/h
                           </td>
-                          <td className="px-3 py-2 text-slate-400">
+                          <td className="px-3 py-2 text-subtle">
                             {row.latitude != null
                               ? `${row.latitude.toFixed(4)}, ${row.longitude.toFixed(4)}`
                               : "--"}
@@ -146,8 +146,8 @@ export default function TelemetriePage() {
                           <td
                             className={
                               row.obstacle_detecte
-                                ? "px-3 py-2 text-red-400"
-                                : "px-3 py-2 text-slate-400"
+                                ? "px-3 py-2 text-error-ink"
+                                : "px-3 py-2 text-subtle"
                             }
                           >
                             {row.distance_obstacle != null
@@ -167,15 +167,15 @@ export default function TelemetriePage() {
                 <CardHeader title="Journal d'activité" />
                 <CardBody className="flex-1 min-h-0 overflow-y-auto">
                   {journal.length === 0 && !loading && (
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-subtle">
                       Aucune activité récente.
                     </p>
                   )}
                   <ul className="space-y-3">
                     {journal.map((entry) => (
                       <li key={entry.id_historique} className="text-sm">
-                        <p className="text-slate-200">{entry.action}</p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-ink">{entry.action}</p>
+                        <p className="text-xs text-subtle">
                           {formatHeure(entry.date_action)}
                         </p>
                       </li>

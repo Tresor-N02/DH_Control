@@ -3,6 +3,7 @@ import { Shield, Bell, LogOut, Menu, X } from "lucide-react";
 import { useDrone } from "../../context/useDrone";
 import { useAuth } from "../../context/useAuth";
 import Sidebar from "./Sidebar";
+import ThemeToggle from "../common/ThemeToggle";
 export default function Navbar() {
   const { alerts, markAlertsRead } = useDrone();
   const { user, logout } = useAuth();
@@ -28,7 +29,7 @@ export default function Navbar() {
   }, []);
   const unread = alerts.filter((a) => a.statut === "NOUVELLE").length;
   return (
-    <header className="relative z-[1200] border-b border-slate-800 bg-slate-900">
+    <header className="relative z-[1200] border-b border-line bg-panel">
       <div className="flex min-h-16 items-center justify-between gap-2 px-3 md:px-5">
         <div className="flex items-center gap-3">
           <button
@@ -40,22 +41,23 @@ export default function Navbar() {
           >
             {menuOpen ? <X /> : <Menu />}
           </button>
-          <Shield className="text-cyan-400" />
+          <Shield className="hidden text-accent-ink sm:block" />
           <div>
             <h1 className="font-bold">DH_MIL</h1>
-            <p className="hidden text-xs text-slate-400 sm:block">
+            <p className="hidden text-xs text-subtle sm:block">
               Supervision du drone hybride
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <div ref={panelRef}>
             <button
               aria-label={`Alertes : ${unread} non lues`}
               aria-expanded={showAlerts}
               aria-controls="alerts-panel"
               onClick={() => setShowAlerts(!showAlerts)}
-              className="flex items-center gap-2 rounded-lg p-3 hover:bg-slate-800"
+              className="flex items-center gap-2 rounded-lg p-3 hover:bg-muted"
             >
               <Bell size={20} />
               <span className="text-sm">{unread}</span>
@@ -64,35 +66,35 @@ export default function Navbar() {
               <section
                 id="alerts-panel"
                 aria-label="Alertes"
-                className="absolute right-3 top-16 max-h-[70vh] w-[min(24rem,calc(100vw-1.5rem))] overflow-auto rounded-xl border border-slate-700 bg-slate-900 p-4 shadow-xl"
+                className="absolute right-3 top-16 max-h-[70vh] w-[min(24rem,calc(100vw-1.5rem))] overflow-auto rounded-xl border border-line-strong bg-panel p-4 shadow-xl"
               >
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <h2 className="font-semibold">Alertes</h2>
                   <button
                     onClick={markAlertsRead}
                     disabled={!unread}
-                    className="text-sm text-cyan-300 disabled:text-slate-500"
+                    className="text-sm text-accent-ink disabled:text-subtle"
                   >
                     Tout marquer comme lu
                   </button>
                 </div>
                 {!alerts.length ? (
-                  <p className="text-sm text-slate-400">Aucune alerte.</p>
+                  <p className="text-sm text-subtle">Aucune alerte.</p>
                 ) : (
                   alerts.map((a) => (
                     <article
                       key={a.id}
-                      className="border-t border-slate-700 py-3"
+                      className="border-t border-line-strong py-3"
                     >
                       <p
-                        className={`text-sm font-semibold ${a.type === "INFO" ? "text-cyan-300" : "text-amber-300"}`}
+                        className={`text-sm font-semibold ${a.type === "INFO" ? "text-accent-ink" : "text-warning-ink"}`}
                       >
                         {a.type === "INFO" ? "Information" : "Avertissement"} ·{" "}
                         {a.type}
                         {a.statut === "NOUVELLE" ? " · Non lue" : ""}
                       </p>
                       <p className="mt-1 text-sm">{a.message}</p>
-                      <time className="text-xs text-slate-400">
+                      <time className="text-xs text-subtle">
                         {a.receivedAt
                           ? new Date(a.receivedAt).toLocaleString("fr-FR")
                           : ""}
@@ -107,7 +109,7 @@ export default function Navbar() {
             onClick={logout}
             aria-label="Se déconnecter"
             title={user?.email}
-            className="rounded-lg p-3 hover:bg-slate-800"
+            className="rounded-lg p-3 hover:bg-muted"
           >
             <LogOut size={20} />
           </button>

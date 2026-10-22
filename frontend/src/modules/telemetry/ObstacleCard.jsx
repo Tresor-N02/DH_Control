@@ -19,15 +19,15 @@ export default function ObstacleCard() {
       />
 
       <CardBody>
-        <h1
-          className={`text-2xl font-bold ${obstacleDetected ? "text-red-400" : ""}`}
+        <p
+          className={`text-4xl font-semibold tracking-tight ${obstacleDetected ? "text-error-ink" : ""}`}
         >
           {hasReading ? distanceObstacle.toFixed(0) : "--"}
-          <span className="ml-2 text-base text-slate-400">cm</span>
-        </h1>
+          <span className="ml-2 text-base text-subtle">cm</span>
+        </p>
 
         <p
-          className={`mt-1 text-xs font-medium ${!hasReading ? "text-amber-300" : obstacleDetected ? "text-red-400" : "text-cyan-300"}`}
+          className={`mt-1 text-xs font-medium ${!hasReading ? "text-warning-ink" : obstacleDetected ? "text-error-ink" : "text-accent-ink"}`}
         >
           {!hasReading
             ? "Pas de lecture"

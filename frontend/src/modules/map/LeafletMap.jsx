@@ -71,7 +71,7 @@ export default function LeafletMap() {
         )}
       </MapContainer>
       {!valid && (
-        <p className="absolute bottom-3 left-3 right-16 z-[1000] rounded-lg bg-slate-900/95 p-3 text-sm text-amber-200">
+        <p className="absolute bottom-3 left-3 right-16 z-[1000] rounded-lg bg-panel/95 p-3 text-sm text-warning-ink">
           Position actuelle indisponible. Aucun emplacement de drone confirmé.
         </p>
       )}

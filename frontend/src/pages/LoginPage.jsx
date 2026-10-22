@@ -3,6 +3,7 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Shield, LogIn, Loader2 } from "lucide-react";
 
 import { useAuth } from "../context/useAuth";
+import ThemeToggle from "../components/common/ThemeToggle";
 
 export default function LoginPage() {
   const { token, loading, login, error } = useAuth();
@@ -28,21 +29,24 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-white">
+    <div className="flex min-h-screen items-center justify-center bg-app px-4 text-ink">
+      <div className="absolute right-4 top-4">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-2">
-          <Shield size={40} className="text-cyan-400" />
+          <Shield size={40} className="text-accent-ink" />
           <h1 className="text-lg font-bold">DH_MIL</h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-subtle">
             Poste de contrôle -- Drone Hybride
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-md"
+          className="rounded-2xl border border-line bg-panel p-6 shadow-md"
         >
-          <label htmlFor="email" className="mb-1 block text-xs text-slate-400">
+          <label htmlFor="email" className="mb-1 block text-xs text-subtle">
             Email
           </label>
           <input
@@ -51,14 +55,11 @@ export default function LoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mb-4 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-500"
+            className="mb-4 w-full rounded-lg border border-line bg-app px-3 py-2 text-sm outline-none focus:border-cyan-500"
             autoComplete="username"
           />
 
-          <label
-            htmlFor="password"
-            className="mb-1 block text-xs text-slate-400"
-          >
+          <label htmlFor="password" className="mb-1 block text-xs text-subtle">
             Mot de passe
           </label>
           <input
@@ -67,12 +68,12 @@ export default function LoginPage() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mb-4 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-500"
+            className="mb-4 w-full rounded-lg border border-line bg-app px-3 py-2 text-sm outline-none focus:border-cyan-500"
             autoComplete="current-password"
           />
 
           {error && (
-            <p role="alert" className="mb-4 text-sm text-red-300">
+            <p role="alert" className="mb-4 text-sm text-error-ink">
               {error}
             </p>
           )}
@@ -80,7 +81,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-600 py-2 text-sm font-semibold transition hover:bg-cyan-500 disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-600 text-white py-2 text-sm font-semibold transition hover:bg-cyan-500 disabled:opacity-60"
           >
             {submitting ? (
               <Loader2 size={16} className="animate-spin" />

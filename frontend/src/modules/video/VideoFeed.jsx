@@ -50,7 +50,7 @@ export default function VideoFeed() {
   return (
     <div
       ref={containerRef}
-      className="relative flex h-full min-h-72 items-center justify-center overflow-hidden rounded-xl bg-black"
+      className="relative flex h-full min-h-72 items-center justify-center overflow-hidden rounded-xl bg-black text-white"
     >
       {videoFrame ? (
         <div className="relative" style={{ width, height: width / ratio }}>

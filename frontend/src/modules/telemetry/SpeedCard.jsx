@@ -24,7 +24,7 @@ export default function SpeedCard() {
   }
 
   if (currentSpeed >= 20) {
-    color = "bg-red-500";
+    color = "bg-red-500 text-white";
     status = "Rapide";
   }
 
@@ -33,19 +33,19 @@ export default function SpeedCard() {
       <CardHeader title="Vitesse" icon={Gauge} />
 
       <CardBody>
-        <div className="flex items-end justify-between">
-          <h1 className="text-2xl font-bold">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <p className="text-4xl font-semibold tracking-tight">
             {lastTelemetryAt ? currentSpeed.toFixed(1) : "—"}
 
-            <span className="ml-2 text-sm text-slate-400">km/h</span>
-          </h1>
+            <span className="ml-2 text-sm text-subtle">km/h</span>
+          </p>
 
-          <span className="text-xs text-cyan-400 font-medium">
+          <span className="text-xs text-accent-ink font-medium">
             {lastTelemetryAt ? status : "En attente"}
           </span>
         </div>
 
-        <div className="mt-2 h-1 rounded-full bg-slate-800">
+        <div className="mt-2 h-1 rounded-full bg-muted">
           <div
             className={`${color} h-1 rounded-full transition-all duration-300`}
             style={{

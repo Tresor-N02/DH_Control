@@ -12,7 +12,7 @@ export default function SignalCard() {
         <p className="text-2xl font-bold">
           {simulated && lastTelemetryAt ? `${signal} %` : "—"}
         </p>
-        <p className="mt-2 text-xs text-slate-400">
+        <p className="mt-2 text-xs text-subtle">
           {simulated ? "Valeur simulée" : "Mesure matérielle indisponible"}
         </p>
       </CardBody>

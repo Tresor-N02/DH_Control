@@ -26,7 +26,7 @@ export default function MapToolbar({
           aria-pressed={i === 3 ? following : undefined}
           disabled={i >= 2 && !canLocate}
           onClick={action}
-          className={`flex h-11 w-11 items-center justify-center rounded-lg border border-slate-700 ${i === 3 && following ? "bg-cyan-700" : "bg-slate-900"} disabled:opacity-40`}
+          className={`flex h-11 w-11 items-center justify-center rounded-lg border border-line-strong ${i === 3 && following ? "bg-cyan-700 text-white" : "bg-panel"} disabled:opacity-40`}
         >
           <Icon size={20} />
         </button>

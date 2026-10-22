@@ -17,11 +17,11 @@ export default function BatteryCard() {
       <CardHeader title="Batterie" icon={Icon} />
 
       <CardBody>
-        <h1 className="text-2xl font-bold">
+        <p className="text-4xl font-semibold tracking-tight">
           {simulated && lastTelemetryAt ? `${battery.toFixed(0)} %` : "—"}
-        </h1>
+        </p>
 
-        <p className="mt-2 text-xs text-slate-400">
+        <p className="mt-2 text-xs text-subtle">
           {simulated ? "Valeur simulée" : "Mesure matérielle indisponible"}
         </p>
         <div
@@ -29,7 +29,7 @@ export default function BatteryCard() {
             mt-2
             h-1
             rounded-full
-            bg-slate-800
+            bg-muted
           "
         >
           <div
@@ -43,7 +43,7 @@ export default function BatteryCard() {
                   ? "bg-green-500"
                   : battery > 20
                     ? "bg-yellow-500"
-                    : "bg-red-500"
+                    : "bg-red-500 text-white"
               }
             `}
             style={{

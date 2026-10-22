@@ -1,10 +1,80 @@
 @import "tailwindcss";
 
+@theme {
+  --text-xs: 0.875rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.5;
+}
+
+@theme inline {
+  --color-app: var(--app);
+  --color-panel: var(--panel);
+  --color-muted: var(--muted);
+  --color-muted-strong: var(--muted-strong);
+  --color-ink: var(--ink);
+  --color-secondary: var(--secondary);
+  --color-subtle: var(--subtle);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent-ink: var(--accent-ink);
+  --color-warning-ink: var(--warning-ink);
+  --color-warning-surface: var(--warning-surface);
+  --color-warning-line: var(--warning-line);
+  --color-error-ink: var(--error-ink);
+  --color-error-surface: var(--error-surface);
+  --color-error-line: var(--error-line);
+}
+
+:root {
+  color-scheme: dark;
+  --app: #020617;
+  --panel: #0f172a;
+  --muted: #1e293b;
+  --muted-strong: #334155;
+  --ink: #f1f5f9;
+  --secondary: #cbd5e1;
+  --subtle: #94a3b8;
+  --line: #1e293b;
+  --line-strong: #334155;
+  --accent-ink: #22d3ee;
+  --warning-ink: #fde68a;
+  --warning-surface: #451a03;
+  --warning-line: #b45309;
+  --error-ink: #fecaca;
+  --error-surface: #450a0a;
+  --error-line: #991b1b;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --app: #f8fafc;
+  --panel: #ffffff;
+  --muted: #e2e8f0;
+  --muted-strong: #cbd5e1;
+  --ink: #0f172a;
+  --secondary: #334155;
+  --subtle: #475569;
+  --line: #e2e8f0;
+  --line-strong: #94a3b8;
+  --accent-ink: #0e7490;
+  --warning-ink: #92400e;
+  --warning-surface: #fef3c7;
+  --warning-line: #d97706;
+  --error-ink: #991b1b;
+  --error-surface: #fee2e2;
+  --error-line: #dc2626;
+}
+
 @layer base {
   body {
     margin: 0;
     min-width: 320px;
-    background: #020617;
+    background: var(--app);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
   }
   button,
   a,
@@ -21,7 +91,7 @@
     cursor: not-allowed;
   }
   :focus-visible {
-    outline: 3px solid #22d3ee;
+    outline: 3px solid var(--accent-ink);
     outline-offset: 3px;
   }
   button {
@@ -33,7 +103,8 @@
   transition: opacity 150ms;
 }
 .telemetry-stale .telemetry-value {
-  opacity: 0.55;
+  border-style: dashed;
+  border-color: var(--line-strong);
 }
 @media (prefers-reduced-motion: reduce) {
   *,
