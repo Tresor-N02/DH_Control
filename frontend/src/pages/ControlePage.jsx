@@ -1,51 +1,30 @@
-﻿import { Box, Stack } from "@mui/material";
+import { Box } from "@mui/material";
 import MainLayout from "../components/layout/MainLayout";
-import PageHeading from "../components/common/PageHeading";
 import ControlPanel from "../modules/control/ControlPanel";
 import VideoPanel from "../modules/video/VideoPanel";
-import ObstacleCard from "../modules/telemetry/ObstacleCard";
-import SpeedCard from "../modules/telemetry/SpeedCard";
-import BatteryCard from "../modules/telemetry/BatteryCard";
+
 export default function ControlePage() {
   return (
     <MainLayout>
-      <Stack spacing={3}>
-        <PageHeading
-          eyebrow="Commandes"
-          title="Pilotage terrestre"
-          description="Gardez la caméra en vue et utilisez le joystick pour déplacer le drone."
-        />
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "minmax(0, 1fr)",
-              sm: "repeat(3, minmax(0, 1fr))",
-            },
-            gap: 2,
-          }}
-        >
-          <BatteryCard />
-          <SpeedCard />
-          <ObstacleCard />
-        </Box>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "minmax(0, 1fr)",
-              xl: "minmax(0, 1fr) 360px",
-            },
-            alignItems: "start",
-            gap: 2.5,
-          }}
-        >
-          <Box sx={{ height: 480, minWidth: 0 }}>
-            <VideoPanel />
-          </Box>
+      <Box sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "300px minmax(0, 1fr)", xl: "320px minmax(0, 1fr)" },
+        gridTemplateAreas: { xs: '"camera" "controls"', md: '"controls camera"' },
+        alignItems: "stretch",
+        gap: { xs: 2, md: 2.5 },
+      }}>
+        <Box sx={{ gridArea: "controls", minWidth: 0 }}>
           <ControlPanel />
         </Box>
-      </Stack>
+        <Box component="section" aria-label="Caméra embarquée" sx={{
+          gridArea: "camera",
+          minWidth: 0,
+          height: { xs: 360, sm: 440, md: "100%" },
+          minHeight: { md: 520 },
+        }}>
+          <VideoPanel />
+        </Box>
+      </Box>
     </MainLayout>
   );
 }

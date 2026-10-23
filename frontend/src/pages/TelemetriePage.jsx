@@ -5,23 +5,14 @@ import {
   Box,
   Button,
   CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
   Stack,
-  Table,
-  TableContainer,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  Typography,
+  Tab,
+  Tabs,
 } from "@mui/material";
+import DataTable from "../components/common/DataTable";
 import MainLayout from "../components/layout/MainLayout";
 import PageHeading from "../components/common/PageHeading";
 import Card from "../components/common/Card";
-import CardHeader from "../components/common/CardHeader";
-import CardBody from "../components/common/CardBody";
 import { useDrone } from "../context/useDrone";
 import * as api from "../services/api";
 function formatHeure(iso) {
@@ -31,8 +22,35 @@ function formatHeure(iso) {
     return iso;
   }
 }
+const journalRowId = (row) => row.id_historique;
+const journalColumns = [
+  { field: "action", headerName: "Action", minWidth: 220, flex: 1 },
+  { field: "date_action", headerName: "Date", type: "dateTime", minWidth: 170,
+    valueGetter: (value) => value ? new Date(value) : null,
+    valueFormatter: (value) => value ? value.toLocaleString("fr-FR") : "--" },
+];
+const telemetryRowId = (row) => row.id_telemetrie;
+const numberLabel = (value, digits, unit) => value == null ? "--" : Number(value).toFixed(digits) + unit;
+const telemetryColumns = [
+  { field: "date_heure", headerName: "Heure", minWidth: 120, flex: 1,
+    type: "dateTime", valueGetter: (value) => value ? new Date(value) : null,
+    valueFormatter: (value) => value ? formatHeure(value) : "--" },
+  { field: "batterie", headerName: "Batterie", type: "number", minWidth: 110, flex: 1,
+    valueFormatter: (value) => numberLabel(value, 0, " %") },
+  { field: "altitude", headerName: "Altitude", type: "number", minWidth: 110, flex: 1,
+    valueFormatter: (value) => numberLabel(value, 1, " m") },
+  { field: "vitesse", headerName: "Vitesse", type: "number", minWidth: 120, flex: 1,
+    valueFormatter: (value) => numberLabel(value, 1, " km/h") },
+  { field: "gps", headerName: "GPS", minWidth: 180, flex: 1,
+    valueGetter: (_, row) => row.latitude != null && row.longitude != null
+      ? Number(row.latitude).toFixed(4) + ", " + Number(row.longitude).toFixed(4) : "--" },
+  { field: "distance_obstacle", headerName: "Obstacle", type: "number", minWidth: 120, flex: 1,
+    valueFormatter: (value) => numberLabel(value, 0, " cm"),
+    renderCell: ({ value, row }) => <Box component="span" sx={{ color: row.obstacle_detecte ? "error.main" : "text.secondary" }}>{numberLabel(value, 0, " cm")}</Box> },
+];
 export default function TelemetriePage() {
   const { droneId } = useDrone();
+  const [activeTab, setActiveTab] = useState(0);
   const [history, setHistory] = useState([]);
   const [journal, setJournal] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -89,144 +107,41 @@ export default function TelemetriePage() {
           }
         />
         {error && <Alert severity="error">{error}</Alert>}
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "minmax(0, 1fr)",
-              xl: "minmax(0, 2fr) minmax(0, 1fr)",
-            },
-            gap: 2.5,
-          }}
-        >
-          <Card>
-            <CardHeader title={`Relevés (${history.length})`} />
-            <TableContainer
-              sx={{
-                maxHeight: 640,
-              }}
-            >
-              <Table
-                stickyHeader
-                size="small"
-                aria-label="Historique de télémétrie"
-                sx={{
-                  minWidth: 640,
-                }}
-              >
-                <TableHead>
-                  <TableRow>
-                    {[
-                      "Heure",
-                      "Batterie",
-                      "Altitude",
-                      "Vitesse",
-                      "GPS",
-                      "Obstacle",
-                    ].map((label) => (
-                      <TableCell key={label} scope="col">
-                        {label}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {loading && (
-                    <TableRow>
-                      <TableCell colSpan={6}>
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          sx={{
-                            alignItems: "center",
-                          }}
-                        >
-                          <CircularProgress size={18} />
-                          <Typography variant="body2">
-                            Chargement des relevés…
-                          </Typography>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {!history.length && !loading && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={6}
-                        align="center"
-                        sx={{
-                          py: 4,
-                        }}
-                      >
-                        Aucun relevé pour l’instant.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {history.map((row) => (
-                    <TableRow key={row.id_telemetrie} hover>
-                      <TableCell>{formatHeure(row.date_heure)}</TableCell>
-                      <TableCell>{row.batterie.toFixed(0)}%</TableCell>
-                      <TableCell>{row.altitude.toFixed(1)} m</TableCell>
-                      <TableCell>{row.vitesse.toFixed(1)} km/h</TableCell>
-                      <TableCell>
-                        {row.latitude != null && row.longitude != null
-                          ? `${row.latitude.toFixed(4)}, ${row.longitude.toFixed(4)}`
-                          : "--"}
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          color: row.obstacle_detecte
-                            ? "error.main"
-                            : "text.secondary",
-                        }}
-                      >
-                        {row.distance_obstacle != null
-                          ? `${row.distance_obstacle.toFixed(0)} cm`
-                          : "--"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
-          <Card>
-            <CardHeader title="Journal d’activité" />
-            <CardBody
-              sx={{
-                maxHeight: 640,
-                overflow: "auto",
-              }}
-            >
-              {!journal.length && !loading && (
-                <Typography
-                  sx={{
-                    color: "text.secondary",
-                  }}
-                >
-                  Aucune activité récente.
-                </Typography>
-              )}
-              <List disablePadding>
-                {journal.map((entry) => (
-                  <ListItem key={entry.id_historique} disableGutters divider>
-                    <ListItemText
-                      primary={entry.action}
-                      secondary={formatHeure(entry.date_action)}
-                      slotProps={{
-                        primary: {
-                          sx: {
-                            overflowWrap: "anywhere",
-                          },
-                        },
-                      }}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </CardBody>
-          </Card>
-        </Box>
+        <Card>
+          <Tabs
+            value={activeTab}
+            onChange={(_, value) => setActiveTab(value)}
+            aria-label="Données de télémétrie"
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{ borderBottom: 1, borderColor: "divider" }}
+          >
+            <Tab id="telemetry-tab-0" aria-controls="telemetry-panel-0" label={`Relevés (${history.length})`} />
+            <Tab id="telemetry-tab-1" aria-controls="telemetry-panel-1" label={`Journal d’activité (${journal.length})`} />
+          </Tabs>
+          <Box role="tabpanel" id="telemetry-panel-0" aria-labelledby="telemetry-tab-0" hidden={activeTab !== 0}>
+            {activeTab === 0 && (
+              <DataTable
+                label="Historique de télémétrie"
+                rows={history}
+                columns={telemetryColumns}
+                getRowId={telemetryRowId}
+                loading={loading}
+              />
+            )}
+          </Box>
+          <Box role="tabpanel" id="telemetry-panel-1" aria-labelledby="telemetry-tab-1" hidden={activeTab !== 1}>
+            {activeTab === 1 && (
+              <DataTable
+                label="Journal d’activité"
+                rows={journal}
+                columns={journalColumns}
+                getRowId={journalRowId}
+                loading={loading}
+              />
+            )}
+          </Box>
+        </Card>
       </Stack>
     </MainLayout>
   );

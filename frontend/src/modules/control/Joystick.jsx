@@ -285,6 +285,9 @@ export default function Joystick() {
       variant="outlined"
       sx={{
         p: 2.5,
+        display: "flex",
+        flexDirection: "column",
+        borderRadius: 3,
       }}
     >
       <Typography
@@ -294,12 +297,18 @@ export default function Joystick() {
           mb: 2.5,
         }}
       >
-        Contrôle du drone
+        Pilotage
+      </Typography>
+      <Typography variant="body2" sx={{ color: "text.secondary", mb: 3 }}>
+        Maintenez pour déplacer, relâchez pour arrêter.
       </Typography>
       <Stack
         spacing={2}
         sx={{
           alignItems: "center",
+          flex: 1,
+          justifyContent: "center",
+          py: 1,
         }}
       >
         <Box
@@ -317,6 +326,8 @@ export default function Joystick() {
             border: "1px solid",
             borderColor: "divider",
             bgcolor: "action.hover",
+            cursor: isDragging ? "grabbing" : "grab",
+            boxShadow: "inset 0 0 0 12px rgba(128,128,128,0.04)",
           }}
         >
           <Box
@@ -440,6 +451,8 @@ export default function Joystick() {
         fullWidth
         sx={{
           mt: 3,
+          minHeight: 48,
+          borderRadius: 2,
         }}
       >
         STOP
@@ -452,7 +465,7 @@ export default function Joystick() {
           mt: 2,
         }}
       >
-        Glisser le joystick, ou clavier : ↑ ↓ ← → · Espace = STOP
+        Clavier : ↑ ↓ ← → · Espace pour arrêter
       </Typography>
     </Paper>
   );

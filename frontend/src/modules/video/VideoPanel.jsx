@@ -3,7 +3,7 @@ import Card from "../../components/common/Card";
 import CardHeader from "../../components/common/CardHeader";
 import CardBody from "../../components/common/CardBody";
 import VideoFeed from "./VideoFeed";
-export default function VideoPanel() {
+export default function VideoPanel({ action }) {
   return (
     <Card
       sx={{
@@ -13,7 +13,7 @@ export default function VideoPanel() {
         flexDirection: "column",
       }}
     >
-      <CardHeader title="Caméra embarquée" icon={Camera} />
+      <CardHeader title="Caméra embarquée" icon={Camera} right={action} />
       <CardBody sx={{ flex: 1, minHeight: 0, p: 0 }}>
         <VideoFeed />
       </CardBody>

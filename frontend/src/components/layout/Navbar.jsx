@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTheme } from "@mui/material/styles";
 import { Shield, Bell, LogOut, Menu, X } from "lucide-react";
 import {
   AppBar,
@@ -12,12 +13,14 @@ import {
   Popover,
   Divider,
   Stack,
+  Tooltip,
 } from "@mui/material";
 import { useDrone } from "../../context/useDrone";
 import { useAuth } from "../../context/useAuth";
 import Sidebar from "./Sidebar";
 import ThemeToggle from "../common/ThemeToggle";
 export default function Navbar() {
+  const theme = useTheme();
   const { alerts, markAlertsRead } = useDrone();
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -33,19 +36,19 @@ export default function Navbar() {
     return () => document.removeEventListener("keydown", close);
   }, []);
   useEffect(() => {
-    const desktop = window.matchMedia("(min-width: 1024px)");
+    const desktop = window.matchMedia(`(min-width: ${theme.breakpoints.values.lg}px)`);
     const closeMobile = () => {
       if (desktop.matches) setMenuOpen(false);
     };
     desktop.addEventListener("change", closeMobile);
     return () => desktop.removeEventListener("change", closeMobile);
-  }, []);
+  }, [theme.breakpoints.values.lg]);
   const unread = alerts.filter((a) => a.statut === "NOUVELLE").length;
   return (
     <>
       <AppBar
         component="header"
-        position="static"
+        position="sticky"
         elevation={0}
         color="default"
         sx={{
@@ -54,11 +57,13 @@ export default function Navbar() {
           bgcolor: "background.paper",
           color: "text.primary",
           zIndex: 1200,
+          top: 0,
         }}
       >
         <Toolbar
           sx={{
             gap: 1,
+            minHeight: "72px !important",
             justifyContent: "space-between",
             px: {
               xs: 1.5,
@@ -89,11 +94,14 @@ export default function Navbar() {
             <Box
               component="span"
               sx={{
-                display: {
-                  xs: "none",
-                  sm: "inline-flex",
-                },
-                color: "secondary.main",
+                display: { xs: "none", sm: "inline-flex" },
+                alignItems: "center",
+                justifyContent: "center",
+                width: 40,
+                height: 40,
+                borderRadius: 2.5,
+                bgcolor: "primary.main",
+                color: "primary.contrastText",
               }}
             >
               <Shield />
@@ -103,35 +111,28 @@ export default function Navbar() {
                 component="h1"
                 sx={{
                   fontWeight: 700,
+                  fontSize: "1rem",
+                  letterSpacing: "0.04em",
                 }}
               >
                 DH_MIL
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: "text.secondary",
-                  display: {
-                    xs: "none",
-                    sm: "block",
-                  },
-                }}
-              >
-                Supervision du drone hybride
               </Typography>
             </Box>
           </Stack>
           <Stack
             direction="row"
-            spacing={0.5}
+            spacing={1}
             sx={{
               alignItems: "center",
+              "& .MuiIconButton-root": { width: 40, height: 40, border: "1px solid", borderColor: "divider", borderRadius: 2 },
             }}
           >
             <ThemeToggle />
+            <Tooltip title="Notifications">
             <IconButton
               aria-label={`Alertes : ${unread} non lues`}
               aria-expanded={Boolean(alertAnchor)}
+              aria-haspopup="dialog"
               aria-controls={alertAnchor ? "alerts-panel" : undefined}
               onClick={(e) =>
                 setAlertAnchor(alertAnchor ? null : e.currentTarget)
@@ -141,13 +142,16 @@ export default function Navbar() {
                 <Bell size={20} />
               </Badge>
             </IconButton>
+            </Tooltip>
+            <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+            <Tooltip title={user?.email ? `Se déconnecter (${user.email})` : "Se déconnecter"}>
             <IconButton
               onClick={logout}
               aria-label="Se déconnecter"
-              title={user?.email}
             >
               <LogOut size={20} />
             </IconButton>
+            </Tooltip>
           </Stack>
         </Toolbar>
       </AppBar>
@@ -163,7 +167,7 @@ export default function Navbar() {
           paper: {
             sx: {
               width: 320,
-              maxWidth: "100vw",
+              maxWidth: "calc(100vw - 24px)",
             },
           },
         }}
@@ -177,7 +181,7 @@ export default function Navbar() {
               p: 2,
             }}
           >
-            <Typography variant="h6">Navigation</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>DH_MIL</Typography>
             <IconButton
               aria-label="Fermer le menu"
               onClick={() => setMenuOpen(false)}
@@ -208,6 +212,7 @@ export default function Navbar() {
               maxWidth: "calc(100vw - 24px)",
               maxHeight: "70vh",
               p: 2,
+              borderRadius: 3,
             },
           },
         }}

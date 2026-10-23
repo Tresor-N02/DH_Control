@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
+import { alpha } from "@mui/material/styles";
 import {
   LayoutDashboard,
   Map,
@@ -36,14 +37,17 @@ export default function Sidebar({ mobile = false, onNavigate }) {
               lg: "block",
             },
         position: mobile ? "static" : "sticky",
-        top: 0,
-        minHeight: mobile ? undefined : "calc(100vh - 80px)",
+        top: 72,
+        height: mobile ? undefined : "calc(100dvh - 72px)",
+        overflowY: "auto",
         width: mobile ? "100%" : 256,
         flexShrink: 0,
         borderRight: mobile ? 0 : "1px solid",
         borderColor: "divider",
         bgcolor: "background.paper",
-        p: 2,
+        px: 1.5,
+        pt: 3,
+        pb: 14,
       }}
     >
       <Typography
@@ -52,10 +56,13 @@ export default function Sidebar({ mobile = false, onNavigate }) {
           color: "text.secondary",
           display: "block",
           px: 1.5,
-          mb: 1.5,
+          mb: 2,
+          fontSize: "0.65rem",
+          fontWeight: 700,
+          letterSpacing: "0.12em",
         }}
       >
-        Espace de travail
+        Navigation
       </Typography>
       <List component="nav" aria-label="Navigation principale" disablePadding>
         {menus.map(([title, description, Icon, path]) => (
@@ -68,13 +75,19 @@ export default function Sidebar({ mobile = false, onNavigate }) {
             onClick={onNavigate}
             aria-label={title}
             sx={{
-              minHeight: 72,
-              mb: 1,
+              minHeight: 64,
+              mb: 0.75,
+              px: 1.5,
+              borderRadius: 2.5,
+              border: "1px solid transparent",
+              transition: "background-color 160ms ease, border-color 160ms ease",
+              "&:focus-visible": { outline: "2px solid", outlineColor: "primary.main", outlineOffset: 2 },
               "&.Mui-selected": {
-                bgcolor: "primary.main",
-                color: "primary.contrastText",
+                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
+                borderColor: (theme) => alpha(theme.palette.primary.main, 0.2),
+                color: "primary.main",
                 "&:hover": {
-                  bgcolor: "primary.dark",
+                  bgcolor: (theme) => alpha(theme.palette.primary.main, 0.16),
                 },
                 "& .MuiListItemIcon-root, & .MuiListItemText-secondary": {
                   color: "inherit",
@@ -84,11 +97,11 @@ export default function Sidebar({ mobile = false, onNavigate }) {
           >
             <ListItemIcon
               sx={{
-                minWidth: 36,
-                color: "inherit",
+                minWidth: 40,
+                color: pathname === path ? "primary.main" : "text.secondary",
               }}
             >
-              <Icon size={22} />
+              <Icon size={20} strokeWidth={pathname === path ? 2.2 : 1.7} />
             </ListItemIcon>
             <ListItemText
               primary={title}
@@ -97,12 +110,12 @@ export default function Sidebar({ mobile = false, onNavigate }) {
                 primary: {
                   sx: {
                     fontWeight: 600,
-                    fontSize: "1rem",
+                    fontSize: "0.875rem",
                   },
                 },
                 secondary: {
                   sx: {
-                    fontSize: "0.875rem",
+                    fontSize: "0.75rem",
                     mt: 0.25,
                   },
                 },

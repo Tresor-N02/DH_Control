@@ -6,12 +6,10 @@ import {
   Button,
   Chip,
   CircularProgress,
-  List,
-  ListItem,
   Stack,
   TextField,
-  Typography,
 } from "@mui/material";
+import DataTable from "../components/common/DataTable";
 import MainLayout from "../components/layout/MainLayout";
 import PageHeading from "../components/common/PageHeading";
 import Card from "../components/common/Card";
@@ -27,6 +25,8 @@ function formatDate(iso) {
     return iso;
   }
 }
+const missionRowId = (row) => row.id_mission;
+const statusLabels = { PLANIFIEE: "Planifiée", EN_COURS: "En cours", TERMINEE: "Terminée", ANNULEE: "Annulée" };
 export default function MissionPage() {
   const { droneId } = useDrone();
   const [missions, setMissions] = useState([]);
@@ -96,6 +96,27 @@ export default function MissionPage() {
       setActingOn(null);
     }
   }
+  const columns = [
+    { field: "titre", headerName: "Mission", minWidth: 220, flex: 1 },
+    ...[ ["date_debut", "Début"], ["date_fin", "Fin"] ].map(([field, headerName]) => ({
+      field, headerName, type: "dateTime", minWidth: 175, flex: 1,
+      valueGetter: (value) => value ? new Date(value) : null,
+      valueFormatter: (value) => formatDate(value),
+    })),
+    { field: "statut", headerName: "Statut", type: "singleSelect", minWidth: 140,
+      valueOptions: Object.entries(statusLabels).map(([value, label]) => ({ value, label })),
+      renderCell: ({ value }) => <Chip size="small" variant="outlined"
+        color={value === "EN_COURS" ? "primary" : value === "TERMINEE" ? "success" : value === "ANNULEE" ? "error" : "default"}
+        label={statusLabels[value] || value} /> },
+    { field: "actions", headerName: "Actions", minWidth: 160, sortable: false, filterable: false, disableExport: true,
+      renderCell: ({ row, tabIndex }) => row.statut === "PLANIFIEE" ? (
+        <Button tabIndex={tabIndex} size="small" variant="contained" onClick={() => handleDemarrer(row.id_mission)}
+          disabled={actingOn === row.id_mission} startIcon={<Play size={16} />}>Démarrer</Button>
+      ) : row.statut === "EN_COURS" ? (
+        <Button tabIndex={tabIndex} size="small" variant="outlined" onClick={() => handleTerminer(row.id_mission)}
+          disabled={actingOn === row.id_mission} startIcon={<Square size={16} />}>Terminer</Button>
+      ) : null },
+  ];
   return (
     <MainLayout>
       <Stack spacing={3}>
@@ -149,131 +170,13 @@ export default function MissionPage() {
         <Card>
           <CardHeader title={`Liste des missions (${missions.length})`} />
           <CardBody>
-            {loading && missions.length === 0 && (
-              <Stack
-                direction="row"
-                spacing={1}
-                role="status"
-                sx={{
-                  alignItems: "center",
-                }}
-              >
-                <CircularProgress size={20} />
-                <Typography
-                  sx={{
-                    color: "text.secondary",
-                  }}
-                >
-                  Chargement…
-                </Typography>
-              </Stack>
-            )}
-            {!loading && missions.length === 0 && (
-              <Typography
-                sx={{
-                  color: "text.secondary",
-                }}
-              >
-                Aucune mission pour l’instant. Créez la première ci-dessus.
-              </Typography>
-            )}
-            <List
-              disablePadding
-              sx={{
-                display: "grid",
-                gap: 1.5,
-              }}
-            >
-              {missions.map((mission) => (
-                <ListItem
-                  key={mission.id_mission}
-                  disableGutters
-                  sx={{
-                    p: 2,
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: 2,
-                    flexWrap: "wrap",
-                    gap: 2,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      flex: "1 1 200px",
-                      minWidth: 0,
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        fontWeight: 600,
-                        overflowWrap: "anywhere",
-                      }}
-                    >
-                      {mission.titre}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: "text.secondary",
-                      }}
-                    >
-                      Début : {formatDate(mission.date_debut)} · Fin :{" "}
-                      {formatDate(mission.date_fin)}
-                    </Typography>
-                  </Box>
-                  <Stack
-                    direction="row"
-                    sx={{
-                      alignItems: "center",
-                      flexWrap: "wrap",
-                      gap: 1,
-                    }}
-                  >
-                    <Chip
-                      size="small"
-                      variant="outlined"
-                      color={
-                        mission.statut === "EN_COURS"
-                          ? "primary"
-                          : mission.statut === "TERMINEE"
-                            ? "success"
-                            : mission.statut === "ANNULEE"
-                              ? "error"
-                              : "default"
-                      }
-                      label={
-                        {
-                          PLANIFIEE: "Planifiée",
-                          EN_COURS: "En cours",
-                          TERMINEE: "Terminée",
-                          ANNULEE: "Annulée",
-                        }[mission.statut] || mission.statut
-                      }
-                    />
-                    {mission.statut === "PLANIFIEE" && (
-                      <Button
-                        variant="contained"
-                        onClick={() => handleDemarrer(mission.id_mission)}
-                        disabled={actingOn === mission.id_mission}
-                        startIcon={<Play size={16} />}
-                      >
-                        Démarrer
-                      </Button>
-                    )}
-                    {mission.statut === "EN_COURS" && (
-                      <Button
-                        variant="outlined"
-                        onClick={() => handleTerminer(mission.id_mission)}
-                        disabled={actingOn === mission.id_mission}
-                        startIcon={<Square size={16} />}
-                      >
-                        Terminer
-                      </Button>
-                    )}
-                  </Stack>
-                </ListItem>
-              ))}
-            </List>
+            <DataTable
+              label="Liste des missions"
+              rows={missions}
+              columns={columns}
+              getRowId={missionRowId}
+              loading={loading}
+            />
           </CardBody>
         </Card>
       </Stack>

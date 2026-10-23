@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   LinearProgress,
   Link,
   Paper,
@@ -17,15 +16,11 @@ import { useDrone } from "../../context/useDrone";
 export default function MainLayout({ children }) {
   const {
     droneId,
-    droneName,
     droneLoading,
     droneError,
     reloadDrones,
-    simulated,
     connected,
     telemetryStale,
-    telemetryAge,
-    flightMode,
     commandFeedback,
     emergencyStop,
   } = useDrone();
@@ -79,59 +74,6 @@ export default function MainLayout({ children }) {
             },
           }}
         >
-          <Stack
-            direction="row"
-            sx={{
-              flexWrap: "wrap",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 1.5,
-              borderBottom: "1px solid",
-              borderColor: "divider",
-              pb: 2.5,
-            }}
-          >
-            <Box>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: "text.secondary",
-                }}
-              >
-                Drone sélectionné
-              </Typography>
-              <Typography component="h2" variant="h6">
-                {droneName || "Poste de supervision"}
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: "text.secondary",
-                }}
-              >
-                {flightMode === "TERRESTRE"
-                  ? "Mode terrestre"
-                  : "Mode aérien indisponible"}{" "}
-                ·{" "}
-                {connected && !telemetryStale
-                  ? "Liaison active"
-                  : "Liaison non confirmée"}{" "}
-                ·{" "}
-                {telemetryAge == null
-                  ? "En attente de données"
-                  : `Dernières données : ${telemetryAge} s`}
-              </Typography>
-            </Box>
-            <Chip
-              variant="outlined"
-              color={connected && !telemetryStale ? "success" : "warning"}
-              label={
-                connected && !telemetryStale
-                  ? "Connecté"
-                  : "Connexion indisponible"
-              }
-            />
-          </Stack>
           <Paper
             square
             elevation={3}
@@ -161,18 +103,6 @@ export default function MainLayout({ children }) {
                 gap: 2,
               }}
             >
-              <Typography
-                variant="body2"
-                sx={{
-                  color: "text.secondary",
-                  display: {
-                    xs: "none",
-                    sm: "block",
-                  },
-                }}
-              >
-                Besoin d’arrêter le déplacement ?
-              </Typography>
               <Button
                 disabled={!droneId}
                 onClick={emergencyStop}
@@ -189,12 +119,6 @@ export default function MainLayout({ children }) {
               </Button>
             </Stack>
           </Paper>
-          {simulated && (
-            <Alert severity="info" role="status">
-              Mode simulation — données fictives. Les commandes peuvent agir sur
-              le simulateur.
-            </Alert>
-          )}
           {droneId && (!connected || telemetryStale) && (
             <Alert severity="warning" role="status">
               {!connected
