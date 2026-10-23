@@ -4,12 +4,10 @@ import {
   Button,
   LinearProgress,
   Link,
-  Paper,
   Stack,
   Typography,
 } from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
-import { OctagonX } from "lucide-react";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import { useDrone } from "../../context/useDrone";
@@ -22,7 +20,6 @@ export default function MainLayout({ children }) {
     connected,
     telemetryStale,
     commandFeedback,
-    emergencyStop,
   } = useDrone();
   return (
     <Box
@@ -68,57 +65,8 @@ export default function MainLayout({ children }) {
               xs: 2,
               md: 3.5,
             },
-            pb: {
-              xs: 16,
-              md: 16,
-            },
           }}
         >
-          <Paper
-            square
-            elevation={3}
-            sx={{
-              position: "fixed",
-              left: {
-                xs: 0,
-                lg: 256,
-              },
-              right: 0,
-              bottom: 0,
-              zIndex: 1100,
-              borderTop: "1px solid",
-              borderColor: "divider",
-              px: {
-                xs: 2,
-                md: 3.5,
-              },
-              py: 1.5,
-            }}
-          >
-            <Stack
-              direction="row"
-              sx={{
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 2,
-              }}
-            >
-              <Button
-                disabled={!droneId}
-                onClick={emergencyStop}
-                variant="contained"
-                color="error"
-                startIcon={<OctagonX size={20} />}
-                sx={{
-                  ml: "auto",
-                  minHeight: 48,
-                  px: 3,
-                }}
-              >
-                Arrêt d’urgence
-              </Button>
-            </Stack>
-          </Paper>
           {droneId && (!connected || telemetryStale) && (
             <Alert severity="warning" role="status">
               {!connected
